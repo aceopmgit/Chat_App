@@ -21,6 +21,7 @@ function submitUser(e) {
       );
       alert(res.data.message);
       localStorage.setItem("token", res.data.token);
+      window.location.href = "/ChatterBox/chatRoom/enterChatRoom";
 
 
       //document.getElementById("email").value = "";

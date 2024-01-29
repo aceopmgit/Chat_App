@@ -1,6 +1,8 @@
 const signup = document.getElementById("signup");
 signup.addEventListener("submit", submitUser);
 
+
+
 async function submitUser(e) {
   try {
 

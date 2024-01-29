@@ -79,7 +79,7 @@ exports.loginCheck = async (req, res, next) => {
           res.status(200).json({
             success: true,
             message: "User Logged in Successfully !",
-            token: generateAccessToken(loginDetail[0].id, loginDetail[0].Name, loginDetail[0].Premium),
+            token: generateAccessToken(loginDetail[0].id, loginDetail[0].Name),
           });
         } else {
           res
