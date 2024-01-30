@@ -102,19 +102,52 @@ window.addEventListener("DOMContentLoaded", async () => {
 
         const res1 = await axios.get('/ChatterBox/chatRoom/showUsers', { headers: { "Authorization": token } });
         //console.log(res.data.users[0].Name)
-
+        let userIndex = res1.data.users.length;
         for (let i = 0; i < res1.data.users.length; i++) {
             showUsers(res1.data.users[i])
+
         }
+
 
 
         const res = await axios.get(`/ChatterBox/chatRoom/getChats`, { headers: { "Authorization": token } });
 
-
+        let chatIndex = res.data.chats.length;
         for (let i = 0; i < res.data.chats.length; i++) {
             //console.log(res.data.allExpenseDetails[i])
             showChats(res.data.chats[i]);
+
         }
+
+
+        setInterval(async function () {
+            try {
+
+                const res1 = await axios.get('/ChatterBox/chatRoom/showUsers', { headers: { "Authorization": token } });
+                for (let i = userIndex; i < res1.data.users.length; i++) {
+                    showUsers(res1.data.users[i])
+                }
+                userIndex = res1.data.users.length;
+
+
+                const res = await axios.get(`/ChatterBox/chatRoom/getChats`, { headers: { "Authorization": token } });
+                for (let i = chatIndex; i < res.data.chats.length; i++) {
+                    //console.log(res.data.allExpenseDetails[i])
+                    if (res.data.chats[i].userName != parseJwt(token).name) {
+                        showChats(res.data.chats[i]);
+                    }
+                }
+                chatIndex = res.data.chats.length;
+
+
+
+
+            } catch (err) {
+                document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+                console.log(err);
+            }
+        }, 1000);
 
     } catch (err) {
         document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
@@ -122,3 +155,5 @@ window.addEventListener("DOMContentLoaded", async () => {
         console.log(err);
     }
 });
+
+
