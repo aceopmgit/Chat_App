@@ -4,6 +4,8 @@ chats.addEventListener('submit', addChats);
 const token = localStorage.getItem('token');
 const chatList = document.getElementById('chatList')
 const joinList = document.getElementById('joinList')
+const allChats = document.getElementById('allChats');
+allChats.addEventListener('click', showAllChats);
 
 function parseJwt(token) {
     var base64Url = token.split('.')[1];
@@ -86,6 +88,22 @@ function showChats(obj) {
     chatList.append(li, br)
 }
 
+async function showAllChats() {
+    try {
+        chatList.innerHTML = "";
+        const res = await axios.get(`/ChatterBox/chatRoom/getChats`, { headers: { "Authorization": token } });
+        for (let i = 0; i < res.data.chats.length; i++) {
+            showChats(res.data.chats[i]);
+
+        }
+
+    } catch (err) {
+        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+        console.log(err);
+    }
+}
+
 function showUsers(obj) {
     //creating li element
     const li = document.createElement('li');
@@ -104,8 +122,6 @@ window.addEventListener("DOMContentLoaded", () => {
     async function dispalyUsers() {
         try {
             const res1 = await axios.get('/ChatterBox/chatRoom/showUsers', { headers: { "Authorization": token } });
-            //console.log(res.data.users[0].Name)
-            let userIndex = res1.data.users.length;
             for (let i = 0; i < res1.data.users.length; i++) {
                 showUsers(res1.data.users[i])
 
@@ -122,7 +138,13 @@ window.addEventListener("DOMContentLoaded", () => {
         try {
             if (localStorage.getItem('chats') === null) {
                 const res = await axios.get(`/ChatterBox/chatRoom/getChats`, { headers: { "Authorization": token } });
-                localStorage.setItem('chats', JSON.stringify(res.data.chats));
+
+                //removing older chats from local storage
+                const chats = [...res.data.chats];
+                while (chats.length > 10) {
+                    chats.shift();
+                }
+                localStorage.setItem('chats', JSON.stringify(chats));
 
 
 
@@ -133,14 +155,18 @@ window.addEventListener("DOMContentLoaded", () => {
             }
             else {
                 const oldChats = JSON.parse(localStorage.getItem('chats'))
-                const res = await axios.get(`/ChatterBox/chatRoom/getChats?chatIndex=${oldChats[oldChats.length - 1].id}`, { headers: { "Authorization": token } });
 
-                //storing new chats to localstorage
-                for (let i = 0; i < res.data.chats.length; i++) {
-                    oldChats.push(res.data.chats[i]);
+                //removing older chats from local storage
+                while (oldChats.length > 10) {
+                    oldChats.shift();
                 }
-                localStorage.setItem('chats', JSON.stringify(oldChats));
 
+                let newchatIndex = 0
+                if (oldChats.length > 0 && oldChats != null) {
+                    newchatIndex = oldChats[oldChats.length - 1].id
+                }
+
+                const res = await axios.get(`/ChatterBox/chatRoom/getChats?chatIndex=${newchatIndex}`, { headers: { "Authorization": token } });
 
                 //showing new and old chats on reload
                 for (let i = 0; i < oldChats.length; i++) {
@@ -148,8 +174,60 @@ window.addEventListener("DOMContentLoaded", () => {
 
                 }
 
-
             }
+
+            let ID;
+            setInterval(async function () {
+                try {
+
+                    //showing chats in real time
+                    const oldChats = JSON.parse(localStorage.getItem('chats'))
+
+                    let newchatIndex = 0
+                    if (oldChats.length > 0 && oldChats != null) {
+                        newchatIndex = oldChats[oldChats.length - 1].id
+                    }
+
+                    const res = await axios.get(`/ChatterBox/chatRoom/getChats?chatIndex=${newchatIndex}`, { headers: { "Authorization": token } });
+
+                    //storing new chats to localstorage
+                    for (let i = 0; i < res.data.chats.length; i++) {
+                        oldChats.push(res.data.chats[i]);
+                    }
+
+                    //removing older chats from local storage
+                    while (oldChats.length > 10) {
+                        oldChats.shift();
+                    }
+                    localStorage.setItem('chats', JSON.stringify(oldChats));
+
+
+                    //showing newchats every second
+                    for (let i = 0; i < res.data.chats.length; i++) {
+
+                        if (res.data.chats[i].userName != parseJwt(token).name && ID != res.data.chats[i].id) {
+                            showChats(res.data.chats[i]);
+                            ID = res.data.chats[i].id;
+                            window.scrollTo(0, document.body.scrollHeight);
+
+                        }
+
+                    }
+
+
+
+
+
+
+                } catch (err) {
+
+                    document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+                    console.log(err);
+                }
+
+            }, 1000);
+
 
         } catch (err) {
             document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
@@ -168,42 +246,6 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 
-
-setInterval(async function () {
-    try {
-
-        //showing chats in real time
-        const oldChats = JSON.parse(localStorage.getItem('chats'))
-        console.log(oldChats[oldChats.length - 1].id)
-        const res = await axios.get(`/ChatterBox/chatRoom/getChats?chatIndex=${oldChats[oldChats.length - 1].id}`, { headers: { "Authorization": token } });
-        console.log(res.data.chats.length)
-        //showing newchats every second
-        for (let i = 0; i < res.data.chats.length; i++) {
-            console.log('***************')
-            if (res.data.chats[i].userName != parseJwt(token).name) {
-                showChats(res.data.chats[i]);
-            }
-
-        }
-
-        //storing new chats to localstorage
-        for (let i = 0; i < res.data.chats.length; i++) {
-            oldChats.push(res.data.chats[i]);
-        }
-        localStorage.setItem('chats', JSON.stringify(oldChats));
-
-
-
-
-
-    } catch (err) {
-
-        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
-
-        console.log(err);
-    }
-
-}, 3000);
 
 
 
