@@ -3,6 +3,7 @@ const path = require("path");
 const chats = require('../models/chats')
 const users = require('../models/user.js')
 const sequelize = require('../util/database.js');
+const { Op } = require("sequelize");
 
 exports.chatRoom = (req, res, next) => {
     res.sendFile(path.join(__dirname, "..", "views", "chatRoom.html"));
@@ -65,7 +66,10 @@ exports.showUsers = async (req, res, next) => {
 exports.getChats = async (req, res, next) => {
     try {
 
-        const data = await chats.findAll({ attributes: ['Chats', 'userName'] });
+        const chatIndex = Number(req.query.chatIndex) || 0;
+        //console.log('*****************************************', chatIndex)
+
+        const data = await chats.findAll({ where: { id: { [Op.gt]: chatIndex } }, attributes: ['id', 'Chats', 'userName'] });
         res.status(201).json({ chats: data });
     } catch (err) {
         console.log(err)

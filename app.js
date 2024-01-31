@@ -1,8 +1,11 @@
 const express = require("express");
 const bodyparser = require("body-parser");
 const path = require("path");
+const fs = require('fs');
 require('dotenv').config();
 const cors = require('cors');
+const morgan = require('morgan');
+
 
 const sequelize = require("./util/database");
 const user = require("./models/user");
@@ -17,10 +20,15 @@ const passwordRoutes = require("./routes/password");
 const indexRoutes = require("./routes/index");
 const errorRoutes = require('./routes/error404');
 
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'logs', 'access.log'), { flags: 'a' });
+
+
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "public")));
+app.use(morgan('combined', { stream: accessLogStream }));
+
 app.use(cors({
     origin: '*',
 

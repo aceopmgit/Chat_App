@@ -1,3 +1,4 @@
+
 const chats = document.getElementById('chat');
 chats.addEventListener('submit', addChats);
 const token = localStorage.getItem('token');
@@ -28,6 +29,7 @@ async function addChats(e) {
 
 
         showChats({ Chats: message, userName: parseJwt(token).name });
+        window.scrollTo(0, document.body.scrollHeight);
 
 
         const res = await axios.post('/ChatterBox/chatRoom/addChat', {
@@ -97,63 +99,114 @@ function showUsers(obj) {
 
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", () => {
+
+    async function dispalyUsers() {
+        try {
+            const res1 = await axios.get('/ChatterBox/chatRoom/showUsers', { headers: { "Authorization": token } });
+            //console.log(res.data.users[0].Name)
+            let userIndex = res1.data.users.length;
+            for (let i = 0; i < res1.data.users.length; i++) {
+                showUsers(res1.data.users[i])
+
+            }
+        } catch (err) {
+            document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+            console.log(err);
+        }
+    }
+
+
+    async function displayChats() {
+        try {
+            if (localStorage.getItem('chats') === null) {
+                const res = await axios.get(`/ChatterBox/chatRoom/getChats`, { headers: { "Authorization": token } });
+                localStorage.setItem('chats', JSON.stringify(res.data.chats));
+
+
+
+                for (let i = 0; i < res.data.chats.length; i++) {
+                    showChats(res.data.chats[i]);
+
+                }
+            }
+            else {
+                const oldChats = JSON.parse(localStorage.getItem('chats'))
+                const res = await axios.get(`/ChatterBox/chatRoom/getChats?chatIndex=${oldChats[oldChats.length - 1].id}`, { headers: { "Authorization": token } });
+
+                //storing new chats to localstorage
+                for (let i = 0; i < res.data.chats.length; i++) {
+                    oldChats.push(res.data.chats[i]);
+                }
+                localStorage.setItem('chats', JSON.stringify(oldChats));
+
+
+                //showing new and old chats on reload
+                for (let i = 0; i < oldChats.length; i++) {
+                    showChats(oldChats[i]);
+
+                }
+
+
+            }
+
+        } catch (err) {
+            document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+            console.log(err);
+        }
+
+
+    }
+
+
+    displayChats();
+    dispalyUsers();
+
+
+});
+
+
+
+setInterval(async function () {
     try {
 
-        const res1 = await axios.get('/ChatterBox/chatRoom/showUsers', { headers: { "Authorization": token } });
-        //console.log(res.data.users[0].Name)
-        let userIndex = res1.data.users.length;
-        for (let i = 0; i < res1.data.users.length; i++) {
-            showUsers(res1.data.users[i])
-
-        }
-
-
-
-        const res = await axios.get(`/ChatterBox/chatRoom/getChats`, { headers: { "Authorization": token } });
-
-        let chatIndex = res.data.chats.length;
+        //showing chats in real time
+        const oldChats = JSON.parse(localStorage.getItem('chats'))
+        console.log(oldChats[oldChats.length - 1].id)
+        const res = await axios.get(`/ChatterBox/chatRoom/getChats?chatIndex=${oldChats[oldChats.length - 1].id}`, { headers: { "Authorization": token } });
+        console.log(res.data.chats.length)
+        //showing newchats every second
         for (let i = 0; i < res.data.chats.length; i++) {
-            //console.log(res.data.allExpenseDetails[i])
-            showChats(res.data.chats[i]);
+            console.log('***************')
+            if (res.data.chats[i].userName != parseJwt(token).name) {
+                showChats(res.data.chats[i]);
+            }
 
         }
 
-
-        setInterval(async function () {
-            try {
-
-                const res1 = await axios.get('/ChatterBox/chatRoom/showUsers', { headers: { "Authorization": token } });
-                for (let i = userIndex; i < res1.data.users.length; i++) {
-                    showUsers(res1.data.users[i])
-                }
-                userIndex = res1.data.users.length;
-
-
-                const res = await axios.get(`/ChatterBox/chatRoom/getChats`, { headers: { "Authorization": token } });
-                for (let i = chatIndex; i < res.data.chats.length; i++) {
-                    //console.log(res.data.allExpenseDetails[i])
-                    if (res.data.chats[i].userName != parseJwt(token).name) {
-                        showChats(res.data.chats[i]);
-                    }
-                }
-                chatIndex = res.data.chats.length;
+        //storing new chats to localstorage
+        for (let i = 0; i < res.data.chats.length; i++) {
+            oldChats.push(res.data.chats[i]);
+        }
+        localStorage.setItem('chats', JSON.stringify(oldChats));
 
 
 
 
-            } catch (err) {
-                document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
-
-                console.log(err);
-            }
-        }, 1000);
 
     } catch (err) {
+
         document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
 
         console.log(err);
     }
-});
+
+}, 3000);
+
+
+
+
 
 
