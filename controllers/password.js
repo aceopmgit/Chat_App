@@ -38,7 +38,7 @@ exports.resetEmail = async (req, res, next) => {
                 to: req.body.email,
                 subject: 'Reset Password',
                 html: `<P>Here is your reset link</P>
-                <a href="http://localhost:4000/ChatterBox/password/resetpassword/${id}">Reset password</a>`
+                <a href="http://localhost:4000/password/resetpassword/${id}">Reset password</a>`
             }
 
             transporter.sendMail(mailOptions, (error, info) => {
@@ -140,9 +140,9 @@ exports.resetpassword = async (req, res, next) => {
                             newpassword
                         }
                 
-                        const res = await axios.post("/ChatterBox/password/updatepassword/${id}", details)
+                        const res = await axios.post("/password/updatepassword/${id}", details)
                         alert(res.data.message);
-                        window.location.href = "/ChatterBox/user/login";
+                        window.location.href = "/user/login";
                         
                     } catch (err) {
                         console.log(err)

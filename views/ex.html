@@ -1,0 +1,129 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"
+        integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="row">
+        <div class="col text-center">
+            <button class="btn btn-primary" id="createGroup" data-bs-toggle="modal" data-bs-target="#groupModal">Create
+                New
+                Group</button>
+        </div>
+
+        <div class="modal fade" id="groupModal">
+
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+
+                    <div class="modal-header" style="background-color: #0a399ebe;">
+                        Create a New Group
+                    </div>
+
+                    <div class="modal-body" style="background-color: #cde2e4">
+                        <form id="groupForm">
+                            <div class="form-floating">
+                                <input type="text" id="gname" name="gname" class="form-control" placeholder="gname"
+                                    required autofocus />
+                                <label for="gname" class="form-label">Enter Group Name</label>
+                                <br />
+                            </div>
+                            <hr>
+
+                            <h4>Add Members</h4>
+                            <br>
+                            <div id="membersList" class="pre-scrollable">
+
+                                <p><input type="checkbox" name="users" value="1">Sports</p>
+                                <p><input type="checkbox" name="users" value="2">Business</p>
+                                <p><input type="checkbox" name="users" value="3">Health</p>
+                                <p><input type="checkbox" name="users" value="4">Society</p>
+
+
+                            </div>
+                            <button class="btn btn-block btn-success" type="submit">Create Group</button>
+
+
+                        </form>
+                        <div class="modal-footer" style="background-color: #cde2e4">
+
+                            <button class="btn btn-outline-danger" data-bs-dismiss="modal"
+                                data-bs-target="#modal">Cancel</button>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        (function () {
+            const form = document.querySelector('#groupForm');
+            const checkboxes = form.querySelectorAll('input[type=checkbox]');
+            const checkboxLength = checkboxes.length;
+            const firstCheckbox = checkboxLength > 0 ? checkboxes[0] : null;
+
+            function init() {
+                if (firstCheckbox) {
+                    for (let i = 0; i < checkboxLength; i++) {
+                        checkboxes[i].addEventListener('change', checkValidity);
+                    }
+
+                    checkValidity();
+                }
+            }
+
+            function isChecked() {
+                for (let i = 0; i < checkboxLength; i++) {
+                    if (checkboxes[i].checked) return true;
+                }
+
+                return false;
+            }
+
+            function checkValidity() {
+                const errorMessage = !isChecked() ? 'At least one checkbox must be selected.' : '';
+                firstCheckbox.setCustomValidity(errorMessage);
+            }
+
+            init();
+        })();
+        const groupForm = document.getElementById('submit', createGroup);
+        async function createGroup(e) {
+            e.preventDefault();
+            const groupName = document.getElementById('gname').value;
+            const checkboxes = document.getElementsByName('users')
+            console.log(checkboxes);
+            const users = [];
+
+            for (let i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    users.push(checkboxes[i].value);
+                }
+            }
+            console.log(users);
+
+
+
+
+        }
+    </script>
+</body>
+
+</html>

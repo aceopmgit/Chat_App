@@ -22,12 +22,12 @@ async function submitUser(e) {
 
 
     const res = await axios.post(
-      `/ChatterBox/user/addUser`,
+      `/user/addUser`,
       details
     );
 
     alert(res.data.message);
-    window.location.href = "/ChatterBox/user/login";
+    window.location.href = "/user/login";
 
   } catch (err) {
     document.body.innerHTML =

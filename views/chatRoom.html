@@ -17,7 +17,8 @@
     <title>ChatterBox</title>
 </head>
 
-<body style="background-color: #51dce6">
+<body style="background-color: #51dce6 ;overflow-x: hidden;">
+
     <nav class="navbar navbar-expand-lg navbar-primary" style="background-color: #0a399ebe">
         <div class="container-fluid">
             <h1>
@@ -28,10 +29,16 @@
                 </svg>
                 ChatterBox
             </h1>
+            <!-- button for creating groups -->
+            <div class="col text-right">
+                <button class="btn btn-primary" id="createGroup" data-bs-toggle="modal"
+                    data-bs-target="#groupModal">Create New
+                    Group</button>
+                <button class="btn btn-success" id='logout' data-bs-toggle="modal"
+                    data-bs-target="#logoutModal">Logout</button>
+            </div>
 
-            <button class="btn btn-success float-right" id='logout' data-bs-toggle="modal"
-                data-bs-target="#logoutModal">Logout</button>
-
+            <!-- logout modal -->
             <div class="modal fade" id="logoutModal">
 
                 <div class="modal-dialog modal-dialog-centered">
@@ -46,7 +53,7 @@
                         </div>
 
                         <div class="modal-footer" style="background-color: #cde2e4">
-                            <a class="btn btn-outline-secondary" href="/ChatterBox/index">YES</a>
+                            <a class="btn btn-outline-secondary" href="/">YES</a>
                             <button class="btn btn-outline-secondary" data-bs-dismiss="modal"
                                 data-bs-target="#modal">NO</button>
                         </div>
@@ -57,58 +64,157 @@
         </div>
     </nav>
 
-    <div class="container-fluid">
-        <br>
-        <br>
+    <div class="row grid-divider">
+        <div class="col-md-4">
+            <br>
+            <br>
+            <div class="container">
+                <div class="row">
 
-        <ul id="joinList" class="list-group" style="list-style: none;">
-        </ul>
+                    <!-- modal for creating groups -->
+                    <div class="modal fade" id="groupModal">
 
-        <div class="container">
-            <div class="row">
-                <div class="col text-center">
-                    <button class="btn btn-primary" id="allChats">See all Chats</button>
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <div class="modal-header" style="background-color: #0a399ebe;">
+                                    Create a New Group
+                                </div>
+
+                                <div class="modal-body" style="background-color: #cde2e4">
+                                    <form id="groupForm">
+                                        <div class="form-floating">
+                                            <input type="text" id="gname" name="gname" class="form-control"
+                                                placeholder="gname" required />
+                                            <label for="gname" class="form-label">Enter Group Name</label>
+                                            <br />
+                                        </div>
+
+                                        <h4>Add Members</h4>
+                                        <br>
+                                        <div id="membersList" class="pre-scrollable">
+
+                                            <!-- <p><input type="checkbox" name="users" value="1">Sports</p>
+                                            <p><input type="checkbox" name="users" value="2">Business</p>
+                                            <p><input type="checkbox" name="users" value="3">Health</p>
+                                            <p><input type="checkbox" name="users" value="4">Society</p> -->
+
+
+                                        </div>
+                                        <div id="error-message" style="color: red;
+                                        font-size: 14px;
+                                        margin-top: 5px;"></div>
+                                        <div class="modal-footer" style="background-color: #cde2e4">
+                                            <button class="btn btn-outline-success" type="submit">Create Group</button>
+
+                                            <button class="btn btn-outline-danger" data-bs-dismiss="modal"
+                                                data-bs-target="#modal" id="groupModalClose">Cancel</button>
+                                        </div>
+
+                                    </form>
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
+
+
+                <div class="row">
+                    <div class="list-group" id="groupList" role="tablist">
+                        <!-- list containg group names -->
+
+
+                    </div>
+
+                </div>
+
+
             </div>
         </div>
+        <div class="col-md-8" style="visibility: hidden;" id="chatSection">
+            <div class="container-fluid">
+                <br>
+                <br>
+                <!-- list containg name of group members  -->
+                <ul id="joinList" class="list-group" style="list-style: none;">
+                </ul>
+                <!-- list containing chats of group -->
+                <div class="container">
+                    <div class="row">
+                        <div class="col text-center">
+                            <button class="btn btn-primary" id="allChats">See all Chats</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- list containing chats of group -->
+                <ul id="chatList" class="list-group" style="list-style: none;">
 
-        <ul id="chatList" class="list-group" style="list-style: none;">
-
-        </ul>
+                </ul>
 
 
-    </div>
+            </div>
 
-    <div style="visibility: hidden;">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Eius, non deserunt quas eaque iusto obcaecati, vero
-        magnam explicabo commodi ex nemo ducimus cum corrupti necessitatibus illum perspiciatis, blanditiis fugiat? Non.
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Officia soluta consectetur eius impedit, ratione natus
+            <div style="visibility: hidden;">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Eius, non deserunt quas eaque iusto obcaecati,
+                vero
+                magnam explicabo commodi ex nemo ducimus cum corrupti necessitatibus illum perspiciatis, blanditiis
+                fugiat?
+                Non.
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Officia soluta consectetur eius impedit,
+                ratione
+                natus
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit velit vero quos similique eos quis optio
+                aspernatur
+                eius. A repudiandae quam laborum voluptatem ullam laboriosam ipsam perspiciatis in deleniti impedit!
+            </div>
 
+            <div style="position:fixed;bottom:0 ;width:100%;background-color: #51dce6; ">
+                <div class="container">
+                    <div class="row">
+                        <!-- button for scrolling down -->
+                        <div class="col-md-8 text-right">
+                            <button class="btn btn-light" id="scrollDown"><svg xmlns="http://www.w3.org/2000/svg"
+                                    width="16" height="16" fill="currentColor" class="bi bi-chevron-double-down"
+                                    viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd"
+                                        d="M1.646 6.646a.5.5 0 0 1 .708 0L8 12.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708" />
+                                    <path fill-rule="evenodd"
+                                        d="M1.646 2.646a.5.5 0 0 1 .708 0L8 8.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708" />
+                                </svg></button>
+                        </div>
 
+                    </div>
+                    <!-- chat sending form -->
+                    <div class="row">
+                        <div class="col-sm-12 col-md-8 ">
 
-    </div>
+                            <div class="card" style="border:none;background-color: #51dce6;">
+                                <div class="card-body">
+                                    <form id='chat'>
+                                        <div class="row">
+                                            <div class="col-11">
+                                                <input type="text" id="message" name="message" class="form-control"
+                                                    placeholder="message" required autofocus />
+                                            </div>
+                                            <div class="col-1">
+                                                <button class="btn btn-primary float-right" id="send"
+                                                    type="submit">></button>
+                                            </div>
+                                        </div>
 
-
-    <div style="position:fixed;bottom:0 ;width:100%;background-color: #51dce6;">
-        <div class="row">
-            <div class="col-sm-12 col-md-6 mx-auto">
-
-                <div class="card" style="border:none;background-color: #51dce6;">
-                    <div class="card-body">
-                        <form id='chat'>
-                            <div class="row">
-                                <div class="col-11">
-                                    <input type="text" id="message" name="message" class="form-control"
-                                        placeholder="message" required autofocus />
-                                </div>
-                                <div class="col-1">
-                                    <button class="btn btn-primary float-right" id="send" type="submit">></button>
+                                    </form>
                                 </div>
                             </div>
 
-                        </form>
+                        </div>
                     </div>
                 </div>
+
+
 
             </div>
         </div>
@@ -117,6 +223,10 @@
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
     <script src="/js/chatRoom.js"></script>
 </body>
 

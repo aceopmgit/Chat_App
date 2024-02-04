@@ -16,12 +16,12 @@ function submitUser(e) {
   async function loginCheck() {
     try {
       const res = await axios.post(
-        `/ChatterBox/user/loginCheck`,
+        `/user/loginCheck`,
         details
       );
       alert(res.data.message);
       localStorage.setItem("token", res.data.token);
-      window.location.href = "/ChatterBox/chatRoom/enterChatRoom";
+      window.location.href = "/chatRoom/enterChatRoom";
 
 
       //document.getElementById("email").value = "";
