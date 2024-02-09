@@ -21,7 +21,11 @@ function submitUser(e) {
       );
       alert(res.data.message);
       localStorage.setItem("token", res.data.token);
+      localStorage.removeItem('groupId');
+      localStorage.removeItem('newChatIndex');
+      localStorage.removeItem('chats');
       window.location.href = "/chatRoom/enterChatRoom";
+
 
 
       //document.getElementById("email").value = "";

@@ -9,8 +9,6 @@ router.get("/enterChatRoom", chatController.chatRoom);
 
 router.post('/addChat', userAuthenticate.authenticate, chatController.addChat);
 
-router.get('/showUsersOfGroup', userAuthenticate.authenticate, chatController.showUsersOfGroup);
-
 router.get('/showUsers', userAuthenticate.authenticate, chatController.showUsers);
 
 router.get('/getChats', userAuthenticate.authenticate, chatController.getChats);

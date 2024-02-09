@@ -7,18 +7,21 @@ const token = localStorage.getItem('token');
 const chatList = document.getElementById('chatList')
 const joinList = document.getElementById('joinList')
 
-//for showing all chats
-const allChats = document.getElementById('allChats');
-allChats.addEventListener('click', showAllChats);
-
-//for scrolling
-const scrollDown = document.getElementById('scrollDown');
-scrollDown.addEventListener('click', scrollToBottom);
-
 //for creating group
 const groupForm = document.getElementById('groupForm');
-let isSubmitting = false;
-groupForm.addEventListener('submit', validateForm);
+groupForm.addEventListener('submit', createGroup);
+
+//for adding admin
+const addAdminForm = document.getElementById('addAdminForm');
+addAdminForm.addEventListener('submit', addAdmin);
+
+//for removing users from group;
+const removeUserForm = document.getElementById('removeUserForm');
+removeUserForm.addEventListener('submit', removeUser);
+
+//for adding users to an existing group
+const addUserForm = document.getElementById('addUserForm');
+addUserForm.addEventListener('submit', addUsers);
 
 
 let groupid;
@@ -62,8 +65,6 @@ async function addChats(e) {
         const res = await axios.post(`/chatRoom/addChat?groupId=${groupid}`, {
             message: message
         }, { headers: { "Authorization": token } });
-
-
 
     } catch (err) {
         document.body.innerHTML =
@@ -118,31 +119,42 @@ function showChats(obj) {
 async function showAllChats(e) {
 
     try {
-        if (e === undefined) {
+        //       console.log(e.target);
+        if (e.target.id === 'allChats') {
+
             groupid = localStorage.getItem('groupId');
+
         }
         else {
-            groupid = e.target.value
-            localStorage.setItem('groupId', e.target.value);
-        }
+            groupid = e.target.id;
+            localStorage.setItem('groupId', groupid);
+            document.getElementById('chatSection').style.visibility = 'visible'
 
+            getUsersOfGroup()
+            permissons();
+
+        }
         chatList.innerHTML = "";
-        const res = await axios.get(`/chatRoom/getChats?groupId=${groupid}`, { headers: { "Authorization": token } });
-        for (let i = 0; i < res.data.chats.length; i++) {
-            showChats(res.data.chats[i]);
+        if (groupid) {
+            const res = await axios.get(`/chatRoom/getChats?groupId=${groupid}`, { headers: { "Authorization": token } });
 
+            if (res.data.chats.length > 0) {
+                for (let i = 0; i < res.data.chats.length; i++) {
+                    showChats(res.data.chats[i]);
+
+                }
+
+                localStorage.setItem('newChatIndex', res.data.chats[res.data.chats.length - 1].id);
+
+                //removing older chats from local storage
+                const chats = [...res.data.chats];
+                while (chats.length > 10) {
+                    chats.shift();
+                }
+                console.log(chats);
+                localStorage.setItem('chats', JSON.stringify(chats));
+            }
         }
-
-        //removing older chats from local storage
-        const chats = [...res.data.chats];
-        while (chats.length > 10) {
-            chats.shift();
-        }
-        localStorage.setItem('chats', JSON.stringify(chats));
-
-
-        getUsersOfGroup()
-
     } catch (err) {
         document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
 
@@ -153,17 +165,15 @@ async function showAllChats(e) {
 //getting users in a group from backend
 async function getUsersOfGroup() {
     try {
-        groupid = localStorage.getItem('groupId')
-        if (groupid === null) {
-            groupid = 0
-        }
-
-        joinList.innerHTML = "";
-        const res1 = await axios.get(`/chatRoom/showUsersOfGroup?groupId=${groupid}`, { headers: { "Authorization": token } });
-        console.log(res1)
-        console.log(res1.data.users[0].users.length)
-        for (let i = 0; i < res1.data.users[0].users.length; i++) {
-            showUsers(res1.data.users[0].users[i])
+        if (localStorage.getItem('groupId') != null) {
+            joinList.innerHTML = "";
+            groupid = localStorage.getItem('groupId');
+            const res1 = await axios.get(`/group/showUsersOfGroup?groupId=${groupid}`, { headers: { "Authorization": token } });
+            //console.log(res1)
+            //console.log(res1.data.users[0].users.length)
+            for (let i = 0; i < res1.data.users[0].users.length; i++) {
+                showUsers(res1.data.users[0].users[i])
+            }
         }
     } catch (err) {
         document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
@@ -172,7 +182,7 @@ async function getUsersOfGroup() {
     }
 }
 
-//code for showing all users in a group on thefront end;
+//code for showing all users in a group on the front end;
 function showUsers(obj) {
     //creating li element
     const li = document.createElement('li');
@@ -191,103 +201,28 @@ window.addEventListener("DOMContentLoaded", async () => {
     //getting chats of user
     async function getChats() {
         try {
-            if (localStorage.getItem('chats') === null) {
-                groupid = localStorage.getItem('groupId')
-                if (groupid === null) {
-                    groupid = 0
+            groupid = localStorage.getItem('groupId')
+
+
+            if (groupid) {
+                const res = await axios.get(`/group/checkGroupStatus?groupId=${groupid}`, { headers: { "Authorization": token } });
+                console.log(res.data);
+                if (res.data.success === false) {
+                    localStorage.removeItem('groupId');
+                    localStorage.removeItem('newChatIndex');
+                    localStorage.removeItem('chats');
                 }
-                console.log(groupid)
-
-                const res = await axios.get(`/chatRoom/getChats?groupId=${groupid}`, { headers: { "Authorization": token } });
-
-                //removing older chats from local storage
-                const chats = [...res.data.chats];
-                while (chats.length > 10) {
-                    chats.shift();
-                }
-                localStorage.setItem('chats', JSON.stringify(chats));
-
-
-
-                for (let i = 0; i < res.data.chats.length; i++) {
-                    showChats(res.data.chats[i]);
-
-                }
-            }
-            else {
-                const oldChats = JSON.parse(localStorage.getItem('chats'))
-
-                let newchatIndex = 0
-                if (oldChats.length > 0 && oldChats != null) {
-                    newchatIndex = oldChats[oldChats.length - 1].id
-                }
-
-
-                //showing new and old chats on reload
-                for (let i = 0; i < oldChats.length; i++) {
-                    showChats(oldChats[i]);
-
-                }
-
-            }
-
-            let ID;
-            setInterval(async function () {
-                try {
-
-                    //showing chats in real time
+                else {
+                    getUsersOfGroup();
                     const oldChats = JSON.parse(localStorage.getItem('chats'))
-                    groupid = localStorage.getItem('groupId')
-                    if (groupid === null) {
-                        groupid = 0
-                    }
 
-                    let newchatIndex = 0
-                    if (oldChats.length > 0 && oldChats != null) {
-                        newchatIndex = oldChats[oldChats.length - 1].id
-                    }
-
-                    const res = await axios.get(`/chatRoom/getChats?chatIndex=${newchatIndex}&groupId=${groupid}`, { headers: { "Authorization": token } });
-
-                    //storing new chats to localstorage
-                    for (let i = 0; i < res.data.chats.length; i++) {
-                        oldChats.push(res.data.chats[i]);
-                    }
-
-                    //removing older chats from local storage
-                    while (oldChats.length > 10) {
-                        oldChats.shift();
-                    }
-                    localStorage.setItem('chats', JSON.stringify(oldChats));
-
-
-                    //showing newchats every second
-                    for (let i = 0; i < res.data.chats.length; i++) {
-
-                        if (res.data.chats[i].userName != parseJwt(token).name && ID != res.data.chats[i].id) {
-                            showChats(res.data.chats[i]);
-                            ID = res.data.chats[i].id;
-                            window.scrollTo(0, document.body.scrollHeight);
-
+                    if (oldChats) {
+                        for (let i = 0; i < oldChats.length; i++) {
+                            showChats(oldChats[i]);
                         }
-
                     }
-
-
-
-
-
-
-                } catch (err) {
-
-                    document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
-
-                    console.log(err);
                 }
-
-            }, 1000);
-
-
+            }
         } catch (err) {
             document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
 
@@ -299,15 +234,33 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     //getting user's group from backend
     async function getGroupsOnReload() {
-        const res = await axios.get(`/group/getGroups`, { headers: { "Authorization": token } });
-        if (res.data[0].groups.length) {
-            document.getElementById('chatSection').style.visibility = 'visible'
+        try {
+            const res = await axios.get(`/group/getGroups`, { headers: { "Authorization": token } });
+
+            //console.log(res.data[0].groups.length);
+            for (let i = 0; i < res.data[0].groups.length; i++) {
+                showGroups(res.data[0].groups[i])
+            }
+
+            if (localStorage.getItem('groupId') != null) {
+                //console.log(localStorage.getItem('groupId'))
+                const activeGroup = document.getElementById(localStorage.getItem('groupId'));
+                activeGroup.className = 'list-group-item list-group-item-action active'
+                document.getElementById('chatSection').style.visibility = 'visible'
+
+            }
+
+        } catch (err) {
+            {
+                document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+                console.log(err);
+            }
         }
-        console.log(res.data[0].groups.length);
-        for (let i = 0; i < res.data[0].groups.length; i++) {
-            showGroups(res.data[0].groups[i])
-        }
+
     }
+
+
 
     //getting users for adding in a group;
     async function displayAllUsers() {
@@ -340,46 +293,114 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
 
+
+
     getChats();
-    getUsersOfGroup();
     displayAllUsers();
     getGroupsOnReload();
+    permissons();
 
 
 });
 
+//showing chats on realtime
+let ID;
+setInterval(async function () {
+    try {
 
-//For making selecting atleast one checkbox mandatory
-function validateForm(event) {
-    event.preventDefault(); // Prevent the form from submitting immediately
+        //showing chats in real time
+        let newchatIndex = localStorage.getItem('newChatIndex');
+        groupid = localStorage.getItem('groupId')
 
-    if (isSubmitting) {
-        return; // If already submitting, do nothing
-    }
+        if (groupid) {
+            if (newchatIndex != null) {
+                oldChats = JSON.parse(localStorage.getItem('chats'));
 
-    let checkboxes = document.getElementsByName('users');
-    let isChecked = false;
 
-    for (let i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].checked) {
-            isChecked = true;
-            break;
+                // if (oldChats.length > 0 && oldChats != null) {
+                //     newchatIndex = oldChats[oldChats.length - 1].id
+                // }
+
+                const res = await axios.get(`/chatRoom/getChats?chatIndex=${newchatIndex}&groupId=${groupid}`, { headers: { "Authorization": token } });
+
+                //console.log(res.data.chats);
+                if (res.data.chats.length > 0) {
+                    //newchatIndex = res.data.chats[res.data.chats.length - 1].id;
+                    localStorage.setItem('newChatIndex', res.data.chats[res.data.chats.length - 1].id);
+
+                    // storing new chats to localstorage
+                    for (let i = 0; i < res.data.chats.length; i++) {
+                        if (oldChats[oldChats.length - 1].id != res.data.chats[i].id && groupid == res.data.chats[i].groupId) {
+                            oldChats.push(res.data.chats[i]);
+                        }
+
+                    }
+
+                    //removing older chats from local storage
+                    while (oldChats.length > 10) {
+                        oldChats.shift();
+                    }
+                    localStorage.setItem('chats', JSON.stringify(oldChats));
+
+
+                    //showing newchats every second
+                    for (let i = 0; i < res.data.chats.length; i++) {
+
+                        if (res.data.chats[i].userName != parseJwt(token).name && ID != res.data.chats[i].id) {
+                            showChats(res.data.chats[i]);
+                            ID = res.data.chats[i].id;
+                            window.scrollTo(0, document.body.scrollHeight);
+
+                        }
+
+                    }
+                } else {
+
+                }
+
+
+            }
+            else {
+
+                console.log('**********************')
+                const res = await axios.get(`/chatRoom/getChats?groupId=${groupid}`, { headers: { "Authorization": token } });
+                if (res.data.chats.length > 0) {
+                    chatList.innerHTML = "";
+                    for (let i = 0; i < res.data.chats.length; i++) {
+                        showChats(res.data.chats[i]);
+
+                    }
+
+                    localStorage.setItem('newChatIndex', res.data.chats[res.data.chats.length - 1].id);
+
+                    //removing older chats from local storage
+                    const chats = [...res.data.chats];
+                    while (chats.length > 10) {
+                        chats.shift();
+                    }
+                    //console.log(chats);
+                    localStorage.setItem('chats', JSON.stringify(chats));
+                }
+            }
         }
+
+
+
+    } catch (err) {
+
+        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+        console.log(err);
     }
 
-    if (!isChecked) {
-        document.getElementById('error-message').innerText = 'Please select at least one checkbox.';
-    } else {
-        document.getElementById('error-message').innerText = '';
-        isSubmitting = true; // Set the flag before calling createGroup
-        createGroup(event);
-    }
-}
+}, 1000);
 
 
-//for creating groups
-async function createGroup(e) {
-    e.preventDefault();
+
+// for creating groups******************************************************
+
+async function createGroup(event) {
+    event.preventDefault(); // Prevent the form from submitting immediately
 
     const groupName = document.getElementById('gname').value;
     const checkboxes = document.getElementsByName('users');
@@ -391,28 +412,32 @@ async function createGroup(e) {
         }
     }
 
-    const details = {
-        name: groupName,
-        users: users
+    if (users.length === 0) {
+        document.getElementById('error-message').innerText = 'Please select at least one checkbox.';
+
+    }
+    else {
+        const details = {
+            name: groupName,
+            users: users
+        }
+
+        try {
+            const res = await axios.post(`/group/createGroup`, details, { headers: { "Authorization": token } });
+            //console.log(res.data);
+
+            document.getElementById('groupModalClose').click();
+            groupForm.reset();
+            showGroups(res.data.details);
+            document.getElementById('error-message').innerText = '';
+
+        } catch (error) {
+            console.error('Error creating group:', error);
+        }
+
+
     }
 
-    const createButton = e.target;
-    createButton.disabled = true;
-
-    try {
-        const res = await axios.post(`/group/createGroup`, details, { headers: { "Authorization": token } });
-        console.log(res.data);
-
-        document.getElementById('groupModalClose').click();
-        groupForm.reset();
-        showGroups(res.data.details);
-
-    } catch (error) {
-        console.error('Error creating group:', error);
-    } finally {
-        isSubmitting = false; // Reset the flag after the Axios call
-        createButton.disabled = false;
-    }
 }
 
 function showGroups(obj) {
@@ -423,16 +448,402 @@ function showGroups(obj) {
     button.setAttribute("data-bs-toggle", "list");
     button.addEventListener('click', showAllChats);
     button.innerHTML = obj.Name;
-    button.value = obj.id;
+    button.id = obj.id;
     groupList.appendChild(button);
 
-    document.getElementById('chatSection').style.visibility = 'visible'
-    localStorage.setItem('groupId', obj.id);
+    // document.getElementById('chatSection').style.visibility = 'visible'
 
 }
 
+//-------------------------------------------------------------------------------
 
 
+
+//For adding admin  of group *************************************************
+async function showUsersForAddingAdmin() {
+    try {
+        const button = document.getElementById('addAdminButton')
+        button.style.visibility = 'visible';
+
+        groupid = localStorage.getItem('groupId');
+        if (groupid === null) {
+            groupid = 0
+        }
+        const res = await axios.get(`/admin/getUsers?groupId=${groupid}`, { headers: { "Authorization": token } });
+        //console.log(res1.data);
+        const userList = document.getElementById('addAdminList');
+        userList.innerHTML = ""
+        if (res.data.length > 0) {
+            for (let i of res.data) {
+                //getting user list to show in create group modal
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = 'adminUsers';
+                input.value = i.id;
+                const p = document.createElement('p');
+                p.appendChild(input)
+                p.appendChild(document.createTextNode(i.Name));
+                userList.appendChild(p);
+            }
+        }
+        else {
+            userList.innerHTML = userList.innerHTML + '<h4>No Users Found !</h4>';
+            button.style.visibility = 'hidden';
+
+        }
+    } catch (err) {
+        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+        console.log(err);
+    }
+}
+
+async function addAdmin(event) {
+    event.preventDefault();
+    const checkboxes = document.getElementsByName('adminUsers');
+    const users = [];
+
+    for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+            users.push(checkboxes[i].value);
+        }
+    }
+
+    if (users.length === 0) {
+        document.getElementById('error-message1').innerText = 'Please select at least one checkbox.';
+    }
+    else {
+        const details = {
+            users: users
+        }
+
+        groupid = localStorage.getItem('groupId');
+
+        if (groupid != null) {
+            try {
+                const res = await axios.post(`/admin/addAdmin?groupId=${groupid}`, details, { headers: { "Authorization": token } });
+
+
+                document.getElementById('addAdminModalClose').click();
+                addAdminForm.reset();
+                document.getElementById('error-message1').innerText = '';
+                window.location.reload();
+
+            } catch (error) {
+                console.error('Error creating group:', error);
+            }
+        }
+
+    }
+}
+//-------------------------------------------------------------------------------
+
+
+//for removing users from group*************************************************
+async function showUsersForRemovingFromGroup() {
+    try {
+        const button = document.getElementById('removeUserButton')
+        button.style.visibility = 'visible';
+
+        groupid = localStorage.getItem('groupId');
+        if (groupid === null) {
+            groupid = 0
+        }
+        const res = await axios.get(`/group/showUsersForRemoving?groupId=${groupid}`, { headers: { "Authorization": token } });
+        //console.log(typeof (res.data));
+        const userList = document.getElementById('removeUserList');
+        userList.innerHTML = ""
+        if (res.data.length > 0) {
+            for (let i of res.data) {
+                //getting user list to show in create group modal
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = 'rUsers';
+                input.value = i.id;
+                const p = document.createElement('p');
+                p.appendChild(input)
+                p.appendChild(document.createTextNode(i.Name));
+                userList.appendChild(p);
+            }
+        }
+        else {
+            userList.innerHTML = userList.innerHTML + '<h4>No Users Found !</h4>';
+            button.style.visibility = 'hidden';
+
+        }
+    } catch (err) {
+        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+        console.log(err);
+    }
+}
+
+async function removeUser(event) {
+    event.preventDefault(); // Prevent the form from submitting immediately
+
+    const checkboxes = document.getElementsByName('rUsers');
+    const users = [];
+    for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+            users.push(checkboxes[i].value);
+        }
+    }
+
+    if (users.length === 0) {
+        document.getElementById('error-message2').innerText = 'Please select at least one checkbox.';
+    }
+    else {
+        const details = {
+            users: users
+        }
+
+        groupid = localStorage.getItem('groupId');
+
+        if (groupid != null) {
+            try {
+                const res = await axios.post(`/group/removeUsers?groupId=${groupid}`, details, { headers: { "Authorization": token } });
+
+                document.getElementById('removeUserModalClose').click();
+                removeUserForm.reset();
+                window.location.reload();
+                document.getElementById('error-message2').innerText = '';
+
+            } catch (error) {
+                console.error('Error creating group:', error);
+            }
+        }
+
+    }
+}
+//-------------------------------------------------------------------------------
+
+
+//for adding users to an existing group******************************************
+async function showUsersForAddingToGroup() {
+    try {
+        const button = document.getElementById('addUserButton')
+        button.style.visibility = 'visible';
+
+        groupid = localStorage.getItem('groupId');
+        if (groupid === null) {
+            groupid = 0
+        }
+        const res = await axios.get(`/group/showUsersForAdding?groupId=${groupid}`, { headers: { "Authorization": token } });
+        //console.log(res.data);
+        const userList = document.getElementById('addUserList');
+        userList.innerHTML = ""
+        if (res.data.length > 0) {
+            for (let i of res.data) {
+                //getting user list to show in create group modal
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = 'addUsers';
+                input.value = i.id;
+                const p = document.createElement('p');
+                p.appendChild(input)
+                p.appendChild(document.createTextNode(i.name));
+                userList.appendChild(p);
+            }
+        }
+        else {
+            userList.innerHTML = userList.innerHTML + '<h4>No Users Found !</h4>';
+            button.style.visibility = 'hidden';
+
+        }
+    } catch (err) {
+        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+        console.log(err);
+    }
+}
+
+async function addUsers(event) {
+    event.preventDefault(); // Prevent the form from submitting immediately
+
+    const checkboxes = document.getElementsByName('addUsers');
+    const users = [];
+    for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+            users.push(checkboxes[i].value);
+        }
+    }
+
+    if (users.length === 0) {
+        document.getElementById('error-message3').innerText = 'Please select at least one checkbox.';
+    }
+    else {
+        const details = {
+            users: users
+        }
+
+        groupid = localStorage.getItem('groupId');
+
+        if (groupid != null) {
+            try {
+                const res = await axios.post(`/group/addUsers?groupId=${groupid}`, details, { headers: { "Authorization": token } });
+                console.log(res);
+                document.getElementById('addUserModalClose').click();
+                addUserForm.reset();
+                window.location.reload();
+                document.getElementById('error-message3').innerText = '';
+
+            } catch (error) {
+                console.error('Error creating group:', error);
+            }
+        }
+
+    }
+}
+
+//--------------------------------------------------------------------------------
+
+//for leaving group***************************************************************
+async function leaveGroup() {
+    try {
+        const res = await axios.delete(`/group/leaveGroup?groupId=${groupid}`, { headers: { "Authorization": token } });
+        localStorage.removeItem('groupId');
+        localStorage.removeItem('newChatIndex');
+        localStorage.removeItem('chats');
+        window.location.reload();
+
+
+    } catch (err) {
+        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+        console.log(err);
+    }
+}
+//---------------------------------------------------------------------------------
+
+//for deleting group****************************************************************
+async function deleteGroup() {
+    try {
+        const res = await axios.delete(`/group/deleteGroup?groupId=${groupid}`, { headers: { "Authorization": token } });
+        localStorage.removeItem('groupId');
+        localStorage.removeItem('newChatIndex');
+        localStorage.removeItem('chats');
+        window.location.reload();
+
+
+    } catch (err) {
+        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+        console.log(err);
+    }
+}
+//----------------------------------------------------------------------------------
+
+async function permissons() {
+    creatingDropdownButton();
+    const groupid = localStorage.getItem('groupId');
+
+    try {
+        if (groupid) {
+            //checking if the user is admin or not
+            const res = await axios.get(`/group/checkAdmin?groupId=${groupid}`, { headers: { "Authorization": token } });
+            //console.log(res.data);
+            if (res.data.success === false) {
+                document.getElementById('addAdmin').remove();
+                document.getElementById('addMembers').remove();
+                document.getElementById('removeMembers').remove();
+            }
+            else {
+                //checking  if the user is creator/owner of group
+                const res = await axios.get(`/group/checkOwner?groupId=${groupid}`, { headers: { "Authorization": token } });
+                //console.log(res.data);
+                if (res.data.success === false) {
+                    document.getElementById('addAdmin').remove();
+                    document.getElementById('deleteGroup').remove();
+                    showUsersForRemovingFromGroup()
+                    showUsersForAddingToGroup()
+
+                }
+                else {
+                    showUsersForAddingAdmin()
+                    showUsersForRemovingFromGroup()
+                    showUsersForAddingToGroup()
+                }
+            }
+        };
+    } catch (err) {
+        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+        console.log(err);
+    }
+}
+
+function creatingDropdownButton() {
+    const list = document.getElementById('dropdownMenu');
+    list.innerHTML = '';
+
+    //adding button for viewing all chats
+    const li0 = document.createElement('li');
+    const btn0 = document.createElement('button');
+    btn0.className = 'dropdown-item';
+    btn0.id = 'allChats';
+    btn0.innerHTML = 'See all Chats';
+    btn0.addEventListener('click', showAllChats);
+    li0.appendChild(btn0);
+    list.appendChild(li0);
+
+    //Add admin button
+    const li1 = document.createElement('li');
+    const btn1 = document.createElement('button');
+    btn1.className = 'dropdown-item';
+    btn1.setAttribute('data-bs-toggle', 'modal');
+    btn1.setAttribute('data-bs-target', '#addAdminModal');
+    btn1.id = 'addAdmin';
+    btn1.innerHTML = 'Add new admin';
+    li1.appendChild(btn1);
+    list.appendChild(li1);
+
+    //Add button for adding users to an existing group
+    const li2 = document.createElement('li');
+    const btn2 = document.createElement('button');
+    btn2.className = 'dropdown-item';
+    btn2.setAttribute('data-bs-toggle', 'modal');
+    btn2.setAttribute('data-bs-target', '#addUserModal');
+    btn2.id = 'addMembers';
+    btn2.innerHTML = 'Add members to the group';
+    li2.appendChild(btn2);
+    list.appendChild(li2);
+
+    //Add button for removing users from an existing group
+    const li3 = document.createElement('li');
+    const btn3 = document.createElement('button');
+    btn3.className = 'dropdown-item';
+    btn3.setAttribute('data-bs-toggle', 'modal');
+    btn3.setAttribute('data-bs-target', '#removeUserModal');
+    btn3.id = 'removeMembers';
+    btn3.innerHTML = 'Remove members of the group';
+    li3.appendChild(btn3);
+    list.appendChild(li3);
+
+    //Add button for leaving the current group 
+    const li4 = document.createElement('li');
+    const btn4 = document.createElement('button');
+    btn4.className = 'dropdown-item';
+    btn4.setAttribute('data-bs-toggle', 'modal');
+    btn4.setAttribute('data-bs-target', '#exitGroupModal');
+    btn4.id = 'leaveGroup';
+    btn4.innerHTML = 'Leave Group';
+    li4.appendChild(btn4);
+    list.appendChild(li4);
+
+    //adding button for leaving the current group
+    const li5 = document.createElement('li');
+    const btn5 = document.createElement('button');
+    btn5.className = 'dropdown-item';
+    btn5.id = 'deleteGroup';
+    btn5.setAttribute('data-bs-toggle', 'modal');
+    btn5.setAttribute('data-bs-target', '#deleteGroupModal');
+    btn5.innerHTML = 'Delete Group';
+    li5.appendChild(btn5);
+    list.appendChild(li5);
+}
 
 
 

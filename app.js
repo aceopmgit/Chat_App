@@ -11,8 +11,9 @@ const sequelize = require("./util/database");
 const user = require("./models/user");
 const fPassword = require('./models/forgotPassword');
 const chats = require('./models/chats');
-const group = require('./models/group')
+const group = require('./models/group');
 const groupUser = require('./models/groupUser');
+
 
 const app = express();
 
@@ -20,6 +21,7 @@ const userRoutes = require("./routes/user");
 const chatRoutes = require('./routes/chatRoom')
 const passwordRoutes = require("./routes/password");
 const groupRoutes = require('./routes/groups');
+const adminRoutes = require('./routes/admin');
 const indexRoutes = require("./routes/index");
 const errorRoutes = require('./routes/error404');
 
@@ -42,17 +44,18 @@ app.use("/user", userRoutes);
 app.use("/chatRoom", chatRoutes);
 app.use("/password", passwordRoutes);
 app.use('/group', groupRoutes);
+app.use('/admin', adminRoutes);
 app.use(indexRoutes);
 app.use(errorRoutes);
 
 user.hasMany(fPassword);
-fPassword.belongsTo(user);
+fPassword.belongsTo(user, { constraints: true, onDelete: 'CASCADE' });
 
 user.hasMany(chats);
-chats.belongsTo(user);
+chats.belongsTo(user, { constraints: true, onDelete: 'CASCADE' });
 
 group.hasMany(chats);
-chats.belongsTo(group);
+chats.belongsTo(group, { constraints: true, onDelete: 'CASCADE' });
 
 user.belongsToMany(group, { through: groupUser });
 group.belongsToMany(user, { through: groupUser })

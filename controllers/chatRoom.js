@@ -54,22 +54,7 @@ exports.addChat = async (req, res, next) => {
 
 }
 
-exports.showUsersOfGroup = async (req, res, next) => {
-    try {
-        const groupId = Number(req.query.groupId);
 
-
-        const data = await groups.findAll({ include: [{ model: users, attributes: ['Name'] }], where: { id: groupId }, attributes: ['Name'] });
-
-        res.status(201).json({ users: data });
-    } catch (err) {
-        console.log(err)
-        res.status(500).json({
-            Error: err,
-        });
-    }
-
-}
 exports.showUsers = async (req, res, next) => {
     try {
         const groupId = Number(req.query.groupId);
@@ -90,12 +75,12 @@ exports.showUsers = async (req, res, next) => {
 exports.getChats = async (req, res, next) => {
     try {
 
-        const chatIndex = Number(req.query.chatIndex) || 0;
-        const groupId = Number(req.query.groupId);
+        const chatIndex = req.query.chatIndex || 0;
+        const groupId = req.query.groupId;
 
         //console.log('*****************************************', req.query.groupId)
 
-        const data = await chats.findAll({ where: { id: { [Op.gt]: chatIndex }, groupId: groupId }, attributes: ['id', 'Chats', 'userName'] });
+        const data = await chats.findAll({ where: { id: { [Op.gt]: chatIndex }, groupId: groupId }, attributes: ['id', 'Chats', 'userName', 'groupId'] });
         res.status(201).json({ chats: data });
     } catch (err) {
         console.log(err)
