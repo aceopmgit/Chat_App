@@ -38,7 +38,7 @@ exports.resetEmail = async (req, res, next) => {
                 to: req.body.email,
                 subject: 'Reset Password',
                 html: `<P>Here is your reset link</P>
-                <a href="http://localhost:4000/password/resetpassword/${id}">Reset password</a>`
+                <a href="${process.env.WEBSITE}/password/resetpassword/${id}">Reset password</a>`
             }
 
             transporter.sendMail(mailOptions, (error, info) => {

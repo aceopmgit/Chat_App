@@ -34,12 +34,13 @@ app.use(bodyparser.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(morgan('combined', { stream: accessLogStream }));
+const PORT = process.env.PORT || 4000;
 
 app.use(cors({
     origin: '*',
 
 }))
-
+app.use('/check', () => { console.log('****************************************************') });
 app.use("/user", userRoutes);
 app.use("/chatRoom", chatRoutes);
 app.use("/password", passwordRoutes);
@@ -65,7 +66,7 @@ sequelize
     .sync()
     //.sync({ force: true }) //it syncs our models to the database by creating the appropriate tables and relations if we have them
     .then((result) => {
-        app.listen(process.env.PORT || 4000);
+        app.listen(PORT, () => { console.log(`*************This is running on Port ${PORT}***********************`) });
     })
     .catch((err) => {
         console.log(err);
