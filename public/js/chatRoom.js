@@ -1,3 +1,16 @@
+import { io } from "https://cdn.socket.io/4.4.1/socket.io.esm.min.js";
+const socket = io();
+
+
+// Add event listeners or perform other operations with the socket
+// socket.on('connect', () => {
+//     console.log('Connected to Socket.IO server');
+// });
+
+// socket.on('disconnect', () => {
+//     console.log('Disconnected from Socket.IO server');
+// });
+
 //for adding chats
 const chats = document.getElementById('chat');
 chats.addEventListener('submit', addChats);
@@ -6,6 +19,9 @@ const token = localStorage.getItem('token');
 
 const chatList = document.getElementById('chatList')
 const joinList = document.getElementById('joinList')
+
+//for scrolling to bottom
+document.getElementById('scrollDown').addEventListener('click', scrollToBottom);
 
 //for creating group
 const groupForm = document.getElementById('groupForm');
@@ -65,6 +81,22 @@ async function addChats(e) {
         const res = await axios.post(`/chatRoom/addChat?groupId=${groupid}`, {
             message: message
         }, { headers: { "Authorization": token } });
+        console.log(res.data)
+
+        let oldChats = JSON.parse(localStorage.getItem('chats'))
+        oldChats.push(res.data.chatDetails)
+
+        //removing older chats from local storage
+        while (oldChats.length > 10) {
+            oldChats.shift();
+        }
+        localStorage.setItem('chats', JSON.stringify(oldChats));
+
+        console.log(oldChats)
+
+        socket.emit('send-message', res.data.chatDetails);
+
+
 
     } catch (err) {
         document.body.innerHTML =
@@ -144,15 +176,17 @@ async function showAllChats(e) {
 
                 }
 
-                localStorage.setItem('newChatIndex', res.data.chats[res.data.chats.length - 1].id);
 
                 //removing older chats from local storage
                 const chats = [...res.data.chats];
                 while (chats.length > 10) {
                     chats.shift();
                 }
-                console.log(chats);
+                //console.log(chats);
                 localStorage.setItem('chats', JSON.stringify(chats));
+            }
+            else {
+                localStorage.setItem('chats', JSON.stringify([]));
             }
         }
     } catch (err) {
@@ -205,22 +239,21 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 
             if (groupid) {
+                //checking group status
                 const res = await axios.get(`/group/checkGroupStatus?groupId=${groupid}`, { headers: { "Authorization": token } });
                 console.log(res.data);
                 if (res.data.success === false) {
                     localStorage.removeItem('groupId');
-                    localStorage.removeItem('newChatIndex');
                     localStorage.removeItem('chats');
                 }
                 else {
                     getUsersOfGroup();
                     const oldChats = JSON.parse(localStorage.getItem('chats'))
 
-                    if (oldChats) {
-                        for (let i = 0; i < oldChats.length; i++) {
-                            showChats(oldChats[i]);
-                        }
+                    for (let i = 0; i < oldChats.length; i++) {
+                        showChats(oldChats[i]);
                     }
+
                 }
             }
         } catch (err) {
@@ -304,96 +337,22 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 //showing chats on realtime
-let ID;
-setInterval(async function () {
-    try {
-
-        //showing chats in real time
-        let newchatIndex = localStorage.getItem('newChatIndex');
-        groupid = localStorage.getItem('groupId')
-
-        if (groupid) {
-            if (newchatIndex != null) {
-                oldChats = JSON.parse(localStorage.getItem('chats'));
+socket.on("receive-message", (message) => {
+    console.log(message);
+    if (message.groupId == localStorage.getItem('groupId')) {
+        showChats(message);
+        let oldChats = JSON.parse(localStorage.getItem('chats'))
+        oldChats.push(message)
 
 
-                // if (oldChats.length > 0 && oldChats != null) {
-                //     newchatIndex = oldChats[oldChats.length - 1].id
-                // }
-
-                const res = await axios.get(`/chatRoom/getChats?chatIndex=${newchatIndex}&groupId=${groupid}`, { headers: { "Authorization": token } });
-
-                //console.log(res.data.chats);
-                if (res.data.chats.length > 0) {
-                    //newchatIndex = res.data.chats[res.data.chats.length - 1].id;
-                    localStorage.setItem('newChatIndex', res.data.chats[res.data.chats.length - 1].id);
-
-                    // storing new chats to localstorage
-                    for (let i = 0; i < res.data.chats.length; i++) {
-                        if (oldChats[oldChats.length - 1].id != res.data.chats[i].id && groupid == res.data.chats[i].groupId) {
-                            oldChats.push(res.data.chats[i]);
-                        }
-
-                    }
-
-                    //removing older chats from local storage
-                    while (oldChats.length > 10) {
-                        oldChats.shift();
-                    }
-                    localStorage.setItem('chats', JSON.stringify(oldChats));
-
-
-                    //showing newchats every second
-                    for (let i = 0; i < res.data.chats.length; i++) {
-
-                        if (res.data.chats[i].userName != parseJwt(token).name && ID != res.data.chats[i].id) {
-                            showChats(res.data.chats[i]);
-                            ID = res.data.chats[i].id;
-                            window.scrollTo(0, document.body.scrollHeight);
-
-                        }
-
-                    }
-                } else {
-
-                }
-
-
-            }
-            else {
-
-                console.log('**********************')
-                const res = await axios.get(`/chatRoom/getChats?groupId=${groupid}`, { headers: { "Authorization": token } });
-                if (res.data.chats.length > 0) {
-                    chatList.innerHTML = "";
-                    for (let i = 0; i < res.data.chats.length; i++) {
-                        showChats(res.data.chats[i]);
-
-                    }
-
-                    localStorage.setItem('newChatIndex', res.data.chats[res.data.chats.length - 1].id);
-
-                    //removing older chats from local storage
-                    const chats = [...res.data.chats];
-                    while (chats.length > 10) {
-                        chats.shift();
-                    }
-                    //console.log(chats);
-                    localStorage.setItem('chats', JSON.stringify(chats));
-                }
-            }
+        //removing older chats from local storage
+        while (oldChats.length > 10) {
+            oldChats.shift();
         }
-
-
-
-    } catch (err) {
-
-        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
-
-        console.log(err);
+        localStorage.setItem('chats', JSON.stringify(oldChats));
     }
 
-}, 1000);
+})
 
 
 
@@ -705,7 +664,6 @@ async function leaveGroup() {
     try {
         const res = await axios.delete(`/group/leaveGroup?groupId=${groupid}`, { headers: { "Authorization": token } });
         localStorage.removeItem('groupId');
-        localStorage.removeItem('newChatIndex');
         localStorage.removeItem('chats');
         window.location.reload();
 
@@ -723,7 +681,6 @@ async function deleteGroup() {
     try {
         const res = await axios.delete(`/group/deleteGroup?groupId=${groupid}`, { headers: { "Authorization": token } });
         localStorage.removeItem('groupId');
-        localStorage.removeItem('newChatIndex');
         localStorage.removeItem('chats');
         window.location.reload();
 
@@ -736,6 +693,7 @@ async function deleteGroup() {
 }
 //----------------------------------------------------------------------------------
 
+//for checking user's permission
 async function permissons() {
     creatingDropdownButton();
     const groupid = localStorage.getItem('groupId');

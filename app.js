@@ -16,6 +16,16 @@ const groupUser = require('./models/groupUser');
 
 
 const app = express();
+const server = require('http').createServer(app)
+
+const io = require('socket.io')(server);
+io.on('connection', socket => {
+    // console.log(`*********************${socket.id}***************************`);
+    socket.on('send-message', (message) => {
+        // console.log(message);
+        socket.broadcast.emit('receive-message', message);
+    })
+})
 
 const userRoutes = require("./routes/user");
 const chatRoutes = require('./routes/chatRoom')
@@ -66,7 +76,7 @@ sequelize
     .sync()
     //.sync({ force: true }) //it syncs our models to the database by creating the appropriate tables and relations if we have them
     .then((result) => {
-        app.listen(PORT, () => { console.log(`*************This is running on Port ${PORT}***********************`) });
+        server.listen(PORT, () => { console.log(`*************This is running on Port ${PORT}***********************`) });
     })
     .catch((err) => {
         console.log(err);
