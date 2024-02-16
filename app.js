@@ -44,13 +44,13 @@ app.use(bodyparser.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(morgan('combined', { stream: accessLogStream }));
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors({
     origin: '*',
 
 }))
-app.use('/check', () => { console.log('****************************************************') });
+// app.use('/check', () => { console.log('****************************************************') });
 app.use("/user", userRoutes);
 app.use("/chatRoom", chatRoutes);
 app.use("/password", passwordRoutes);
