@@ -1,6 +1,7 @@
 const path = require("path");
 
 const chats = require('../models/chats')
+const archivedChats = require('../models/Archieved_chats.js')
 const users = require('../models/user.js')
 const groups = require('../models/group.js')
 const groupUser = require('../models/groupUser.js')
@@ -12,6 +13,7 @@ require("aws-sdk/lib/maintenance_mode_message").suppress = true;
 
 exports.chatRoom = (req, res, next) => {
     res.sendFile(path.join(__dirname, "..", "views", "chatRoom.html"));
+
 };
 
 function uploadToS3(type, data, fileName) {
@@ -30,7 +32,8 @@ function uploadToS3(type, data, fileName) {
         Key: fileName,
         Body: data,
         ACL: 'public-read',
-        ContentType: type
+        ContentType: type,
+        ContentDisposition: 'attachment'
     }
 
     return new Promise((resolve, reject) => {
@@ -143,5 +146,23 @@ exports.getChats = async (req, res, next) => {
         });
     }
 
+}
+
+exports.getAllChats = async (req, res, next) => {
+    try {
+
+        const chatIndex = req.query.chatIndex || 0;
+        const groupId = req.query.groupId;
+
+        //console.log('*****************************************', req.query.groupId)
+
+        const data = await archivedChats.findAll({ where: { id: { [Op.gt]: chatIndex }, groupId: groupId } });
+        res.status(201).json({ chats: data });
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            Error: err,
+        });
+    }
 }
 

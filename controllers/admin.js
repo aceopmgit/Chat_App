@@ -49,6 +49,7 @@ exports.addAdmin = async (req, res, next) => {
                 groupId: groupid,
                 userId: i
             }, { transaction: t })
+
             await t.commit();
         });
 

@@ -182,21 +182,23 @@ exports.showUsersForAdding = async (req, res, next) => {
 }
 
 exports.addUsers = async (req, res, next) => {
-
+    const t = await sequelize.transaction();
     try {
         const groupid = req.query.groupId;
         const users = req.body.users;
         const group = await groups.findOne({ where: { id: groupid } });
 
         users.forEach(async (i) => {
-            await group.addUser(i, { through: 'groupUser' })
+            await group.addUser(i, { through: 'groupUser' }, { transaction: t })
         })
 
-        console.log('**********************Admin*****************************', users)
+        console.log('**********************Admin*****************************', users);
 
+        await t.commit();
         res.sendStatus(200);
 
     } catch (err) {
+        await t.rollback()
         console.log(err)
         res.status(500).json({
             Error: err,

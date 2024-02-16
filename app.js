@@ -18,6 +18,7 @@ const groupUser = require('./models/groupUser');
 const app = express();
 const server = require('http').createServer(app)
 
+//handling socket.io
 const io = require('socket.io')(server);
 io.on('connection', socket => {
     // console.log(`*********************${socket.id}***************************`);
@@ -26,6 +27,10 @@ io.on('connection', socket => {
         socket.broadcast.emit('receive-message', message);
     })
 })
+
+//handling cron 
+const cronService = require('./services/cron');
+cronService.job.start();
 
 const userRoutes = require("./routes/user");
 const chatRoutes = require('./routes/chatRoom')
@@ -44,7 +49,7 @@ app.use(bodyparser.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(morgan('combined', { stream: accessLogStream }));
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 app.use(cors({
     origin: '*',

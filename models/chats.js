@@ -22,8 +22,14 @@ const chat = sequelize.define('chat', {
     },
     fileUrl: {
         type: Sequelize.TEXT,
-    }
+    },
+    date_time: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+    },
 
+}, {
+    timestamps: false
 })
 
 module.exports = chat;

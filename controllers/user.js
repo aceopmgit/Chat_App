@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 
 const user = require("../models/user.js");
 const sequelize = require('../util/database.js')
+const { Op } = require("sequelize");
+
 
 
 exports.signup = (req, res, next) => {
@@ -36,24 +38,36 @@ exports.addUser = async (req, res, next) => {
     const password = req.body.Password;
     // console.log('***************************************'+req.body);
 
+    let userExist = await user.findOne({
+      where: {
+        [Op.or]: [{ email }, { phone }]
+      }
+    })
+
 
     if (isStringInvalid(name) || isStringInvalid(email) || isStringInvalid(password) || isStringInvalid(phone)) {
       return res.status(400).json({ status: false, message: 'Bad Parameter. Something is Misssing !' });
     }
 
-    bcrypt.hash(password, 10, async (err, hash) => {
-      console.log(err);
+    if (!userExist) {
+      bcrypt.hash(password, 10, async (err, hash) => {
+        console.log(err);
+        const data = await user.create({
+          Name: name,
+          Email: email,
+          Phone: phone,
+          Password: hash,
+        }, { transaction: t });
 
-      const data = await user.create({
-        Name: name,
-        Email: email,
-        Phone: phone,
-        Password: hash,
-      }, { transaction: t });
+        await t.commit();
+        res.status(201).json({ status: true, message: "User Signed Up Successfully !" });
+      });
+    }
+    else {
+      res.status(409).json({ message: 'Email or Phone Number already exist!' });
+    }
 
-      await t.commit();
-      res.status(201).json({ status: true, message: "User Signed Up Successfully !" });
-    });
+
   } catch (err) {
     console.log(err);
     await t.rollback()

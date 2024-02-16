@@ -133,7 +133,7 @@ async function addChats(e) {
 
 //code for showing chats of group in frontend
 function showChats(obj) {
-    console.log(obj);
+    // console.log(obj);
     if (obj.fileStatus === false) {
         const message = obj.Chats;
         let name;
@@ -265,6 +265,7 @@ function showChats(obj) {
 
             const a = document.createElement('a');
             a.href = fileUrl[0].Url;
+            a.download = fileUrl[0].name;
 
             a.appendChild(document.createTextNode(fileUrl[0].name))
 
@@ -288,7 +289,7 @@ function showChats(obj) {
 
         }
 
-        console.log(fileUrl)
+        // console.log(fileUrl)
     }
 
 }
@@ -302,6 +303,49 @@ async function showAllChats(e) {
 
             groupid = localStorage.getItem('groupId');
 
+            chatList.innerHTML = "";
+            if (groupid) {
+                const res = await axios.get(`/chatRoom/getAllChats?groupId=${groupid}`, { headers: { "Authorization": token } });
+
+                if (res.data.chats.length > 0) {
+                    for (let i = 0; i < res.data.chats.length; i++) {
+                        showChats(res.data.chats[i]);
+
+                    }
+
+
+                    //removing older chats from local storage
+                    const chats = [...res.data.chats];
+                    while (chats.length > 10) {
+                        chats.shift();
+                    }
+                    //console.log(chats);
+                    localStorage.setItem('chats', JSON.stringify(chats));
+                }
+                else {
+                    const res = await axios.get(`/chatRoom/getChats?groupId=${groupid}`, { headers: { "Authorization": token } });
+
+                    if (res.data.chats.length > 0) {
+                        for (let i = 0; i < res.data.chats.length; i++) {
+                            showChats(res.data.chats[i]);
+
+                        }
+
+
+                        //removing older chats from local storage
+                        const chats = [...res.data.chats];
+                        while (chats.length > 10) {
+                            chats.shift();
+                        }
+                        //console.log(chats);
+                        localStorage.setItem('chats', JSON.stringify(chats));
+                    }
+                    else {
+                        localStorage.setItem('chats', JSON.stringify([]));
+                    }
+                }
+            }
+
         }
         else {
             groupid = e.target.id;
@@ -311,30 +355,32 @@ async function showAllChats(e) {
             getUsersOfGroup()
             permissons();
 
-        }
-        chatList.innerHTML = "";
-        if (groupid) {
-            const res = await axios.get(`/chatRoom/getChats?groupId=${groupid}`, { headers: { "Authorization": token } });
+            chatList.innerHTML = "";
+            if (groupid) {
+                const res = await axios.get(`/chatRoom/getChats?groupId=${groupid}`, { headers: { "Authorization": token } });
 
-            if (res.data.chats.length > 0) {
-                for (let i = 0; i < res.data.chats.length; i++) {
-                    showChats(res.data.chats[i]);
+                if (res.data.chats.length > 0) {
+                    for (let i = 0; i < res.data.chats.length; i++) {
+                        showChats(res.data.chats[i]);
 
+                    }
+
+
+                    //removing older chats from local storage
+                    const chats = [...res.data.chats];
+                    while (chats.length > 10) {
+                        chats.shift();
+                    }
+                    //console.log(chats);
+                    localStorage.setItem('chats', JSON.stringify(chats));
                 }
-
-
-                //removing older chats from local storage
-                const chats = [...res.data.chats];
-                while (chats.length > 10) {
-                    chats.shift();
+                else {
+                    localStorage.setItem('chats', JSON.stringify([]));
                 }
-                //console.log(chats);
-                localStorage.setItem('chats', JSON.stringify(chats));
             }
-            else {
-                localStorage.setItem('chats', JSON.stringify([]));
-            }
+
         }
+
     } catch (err) {
         document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
 
@@ -378,6 +424,10 @@ function showUsers(obj) {
 
 window.addEventListener("DOMContentLoaded", async () => {
 
+    if (!token) {
+        window.location.href = "/user/login";
+    }
+
     //getting chats of user
     async function getChats() {
         try {
@@ -387,7 +437,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             if (groupid) {
                 //checking group status
                 const res = await axios.get(`/group/checkGroupStatus?groupId=${groupid}`, { headers: { "Authorization": token } });
-                console.log(res.data);
+                //console.log(res.data);
                 if (res.data.success === false) {
                     localStorage.removeItem('groupId');
                     localStorage.removeItem('chats');

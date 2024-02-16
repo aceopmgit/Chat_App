@@ -30,8 +30,14 @@ async function submitUser(e) {
     window.location.href = "/user/login";
 
   } catch (err) {
-    document.body.innerHTML =
-      document.body.innerHTML + `<h4 style="color: red;">${err}</h4>`;
-    console.log(err);
+    if (err.response.status === 409) {
+      alert(err.response.data.message);
+    }
+    else {
+
+      document.body.innerHTML =
+        document.body.innerHTML + `<h4 style="color: red;">${err}</h4>`;
+      console.log(err);
+    }
   }
 }
