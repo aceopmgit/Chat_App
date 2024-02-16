@@ -2,15 +2,6 @@ import { io } from "https://cdn.socket.io/4.4.1/socket.io.esm.min.js";
 const socket = io();
 
 
-// Add event listeners or perform other operations with the socket
-// socket.on('connect', () => {
-//     console.log('Connected to Socket.IO server');
-// });
-
-// socket.on('disconnect', () => {
-//     console.log('Disconnected from Socket.IO server');
-// });
-
 //for adding chats
 const chats = document.getElementById('chat');
 chats.addEventListener('submit', addChats);
@@ -19,6 +10,7 @@ const token = localStorage.getItem('token');
 
 const chatList = document.getElementById('chatList')
 const joinList = document.getElementById('joinList')
+
 
 //for scrolling to bottom
 document.getElementById('scrollDown').addEventListener('click', scrollToBottom);
@@ -69,32 +61,66 @@ function scrollToBottom() {
 async function addChats(e) {
     e.preventDefault();
     try {
+        const fileErrors = document.getElementById('fileErrors')
+        fileErrors.innerHTML = '';
+
         const message = document.getElementById('message').value;
-        document.getElementById('message').value = ""
-        document.getElementById('message').focus()
+        document.getElementById('message').value = "";
 
+        const files = document.getElementById('fileUpload').files
 
-        showChats({ Chats: message, userName: parseJwt(token).name });
-        window.scrollTo(0, document.body.scrollHeight);
-
-        groupid = localStorage.getItem('groupId');
-        const res = await axios.post(`/chatRoom/addChat?groupId=${groupid}`, {
-            message: message
-        }, { headers: { "Authorization": token } });
-        console.log(res.data)
-
-        let oldChats = JSON.parse(localStorage.getItem('chats'))
-        oldChats.push(res.data.chatDetails)
-
-        //removing older chats from local storage
-        while (oldChats.length > 10) {
-            oldChats.shift();
+        if (message.length === 0 && files.length === 0) {
+            return
         }
-        localStorage.setItem('chats', JSON.stringify(oldChats));
 
-        console.log(oldChats)
+        const formData = new FormData();
+        if (files.length > 10) {
+            const h5 = document.createElement('h5');
+            h5.style.color = 'red'
+            h5.innerHTML = 'You cannot send more than 10 files at once !'
+            fileErrors.appendChild(h5);
+            return
+        }
 
-        socket.emit('send-message', res.data.chatDetails);
+        // Check file size and append to formData
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].size <= 5 * 1024 * 1024) { // 5MB limit
+                formData.append('files', files[i]);
+            } else {
+                const h5 = document.createElement('h5');
+                h5.style.color = 'red'
+                h5.innerHTML = `File ${files[i].name} exceeds the size limit (10MB) and won't be uploaded.`
+                fileErrors.appendChild(h5);
+            }
+        }
+        formData.append('text', message)
+
+        chats.reset()
+        groupid = localStorage.getItem('groupId');
+
+        if (groupid) {
+
+            const res = await axios.post(`/chatRoom/addChat?groupId=${groupid}`, formData, { headers: { "Authorization": token, 'Content-Type': 'multipart/form-data' } });
+
+            console.log(res.data)
+
+            document.getElementById('message').focus()
+            showChats(res.data.chatDetails);
+            window.scrollTo(0, document.body.scrollHeight);
+
+            let oldChats = JSON.parse(localStorage.getItem('chats'))
+            oldChats.push(res.data.chatDetails)
+
+            //removing older chats from local storage
+            while (oldChats.length > 10) {
+                oldChats.shift();
+            }
+            localStorage.setItem('chats', JSON.stringify(oldChats));
+
+            console.log(oldChats)
+
+            socket.emit('send-message', res.data.chatDetails);
+        }
 
 
 
@@ -107,44 +133,164 @@ async function addChats(e) {
 
 //code for showing chats of group in frontend
 function showChats(obj) {
-    const message = obj.Chats;
-    let name;
-    //creating li element
-    const li = document.createElement('li');
-    li.className = 'list-group-item';
-    li.style.border = 'none';
-    li.style.width = 'fit-content';
+    console.log(obj);
+    if (obj.fileStatus === false) {
+        const message = obj.Chats;
+        let name;
+        //creating li element
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.style.border = 'none';
+        li.style.width = 'fit-content';
 
-    if (obj.userName === parseJwt(token).name) {
-        name = 'You'
-        li.style.backgroundColor = '#4fe94f'
+        if (obj.userName === parseJwt(token).name) {
+            name = 'You'
+            li.style.backgroundColor = '#4fe94f'
+        }
+        else {
+            name = obj.userName;
+            li.style.backgroundColor = '#fdf5c9'
+        }
+
+        //creating first div to store chats
+        const div1 = document.createElement('div');
+
+        //creating second div to store username
+        const div2 = document.createElement('div');
+        div2.className = 'fw-bold';
+        div2.appendChild(document.createTextNode(name));
+
+        //Adding div2 to div1
+        div1.appendChild(div2);
+
+        //Adding chats to div1
+        div1.appendChild(document.createTextNode(message));
+
+        //Adding div1 to li
+        li.appendChild(div1);
+
+        //creating br element
+        const br = document.createElement('br');
+
+        chatList.append(li, br)
     }
     else {
-        name = obj.userName;
-        li.style.backgroundColor = '#fdf5c9'
+        const fileUrl = JSON.parse(obj.fileUrl);
+
+        if (fileUrl[0].type.includes('image')) {
+            const message = obj.Chats;
+            let name;
+            //creating li element
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.style.border = 'none';
+            li.style.width = 'fit-content';
+
+            if (obj.userName === parseJwt(token).name) {
+                name = 'You'
+                li.style.backgroundColor = '#4fe94f'
+            }
+            else {
+                name = obj.userName;
+                li.style.backgroundColor = '#fdf5c9'
+            }
+
+            //creating first div to store chats
+            const div1 = document.createElement('div');
+
+            //creating second div to store username
+            const div2 = document.createElement('div');
+            div2.className = 'fw-bold';
+            div2.appendChild(document.createTextNode(name));
+
+            //Adding div2 to div1
+            div1.appendChild(div2);
+
+            const a = document.createElement('a');
+            a.href = fileUrl[0].Url;
+
+            const img = document.createElement('img');
+            img.src = fileUrl[0].Url;
+            img.width = 300;
+            img.height = 200;
+
+            a.appendChild(img);
+
+            div1.appendChild(a);
+
+            const chat = document.createElement('p');
+            chat.innerHTML = `${message}`
+
+            div1.appendChild(chat);
+
+            //Adding div1 to li
+            li.appendChild(div1);
+
+            //creating br element
+            const br = document.createElement('br');
+
+            chatList.append(li, br)
+
+
+
+        }
+        else {
+            const message = obj.Chats;
+            let name;
+            //creating li element
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.style.border = 'none';
+            li.style.width = 'fit-content';
+
+            if (obj.userName === parseJwt(token).name) {
+                name = 'You'
+                li.style.backgroundColor = '#4fe94f'
+            }
+            else {
+                name = obj.userName;
+                li.style.backgroundColor = '#fdf5c9'
+            }
+
+            //creating first div to store chats
+            const div1 = document.createElement('div');
+
+            //creating second div to store username
+            const div2 = document.createElement('div');
+            div2.className = 'fw-bold';
+            div2.appendChild(document.createTextNode(name));
+
+            //Adding div2 to div1
+            div1.appendChild(div2);
+
+            const a = document.createElement('a');
+            a.href = fileUrl[0].Url;
+
+            a.appendChild(document.createTextNode(fileUrl[0].name))
+
+            div1.appendChild(a);
+
+            const chat = document.createElement('p');
+            chat.innerHTML = `${message}`
+
+            div1.appendChild(chat);
+
+            //Adding div1 to li
+            li.appendChild(div1);
+
+            //creating br element
+            const br = document.createElement('br');
+
+            chatList.append(li, br)
+
+
+
+
+        }
+
+        console.log(fileUrl)
     }
 
-    //creating first div to store chats
-    const div1 = document.createElement('div');
-
-    //creating second div to store username
-    const div2 = document.createElement('div');
-    div2.className = 'fw-bold';
-    div2.appendChild(document.createTextNode(name));
-
-    //Adding div2 to div1
-    div1.appendChild(div2);
-
-    //Adding chats to div1
-    div1.appendChild(document.createTextNode(message));
-
-    //Adding div1 to li
-    li.appendChild(div1);
-
-    //creating br element
-    const br = document.createElement('br');
-
-    chatList.append(li, br)
 }
 
 //getting chats of  a group on click of group button
@@ -250,8 +396,10 @@ window.addEventListener("DOMContentLoaded", async () => {
                     getUsersOfGroup();
                     const oldChats = JSON.parse(localStorage.getItem('chats'))
 
-                    for (let i = 0; i < oldChats.length; i++) {
-                        showChats(oldChats[i]);
+                    if (oldChats) {
+                        for (let i = 0; i < oldChats.length; i++) {
+                            showChats(oldChats[i]);
+                        }
                     }
 
                 }

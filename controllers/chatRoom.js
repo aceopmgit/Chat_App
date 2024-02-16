@@ -7,41 +7,95 @@ const groupUser = require('../models/groupUser.js')
 const sequelize = require('../util/database.js');
 const { Op } = require("sequelize");
 const { group } = require("console");
+const AWS = require('aws-sdk');
+require("aws-sdk/lib/maintenance_mode_message").suppress = true;
 
 exports.chatRoom = (req, res, next) => {
     res.sendFile(path.join(__dirname, "..", "views", "chatRoom.html"));
 };
 
-function isStringInvalid(string) {
-    if (string === undefined || string.length === 0) {
-        return true
+function uploadToS3(type, data, fileName) {
+    const BUCKET_NAME = process.env.BUCKET_NAME;
+    const IAM_USER_KEY = process.env.IAM_USER_KEY;
+    const IAM_USER_SECRET = process.env.IAM_USER_SECRET;
+
+    let s3Bucket = new AWS.S3({
+        accessKeyId: IAM_USER_KEY,
+        secretAccessKey: IAM_USER_SECRET,
+    })
+
+
+    const params = {
+        Bucket: BUCKET_NAME,
+        Key: fileName,
+        Body: data,
+        ACL: 'public-read',
+        ContentType: type
     }
-    else {
-        return false
-    }
+
+    return new Promise((resolve, reject) => {
+        s3Bucket.upload(params, (err, s3Response) => {
+            if (err) {
+                console.log(err);
+                reject(err);
+            }
+            else {
+                //console.log('success', s3Response);
+                resolve(s3Response.Location);
+            }
+        })
+    })
 }
 
 exports.addChat = async (req, res, next) => {
     const t = await sequelize.transaction();
     try {
         console.log('********************************************', req.body)
-        const { message } = req.body;
-        const groupId = Number(req.query.groupId);
-        console.log('********************************************', req.body)
-        if (isStringInvalid(message)) {
-            return res.status(400).json({ status: false, message: 'Bad Parameter. Chat is Misssing !' });
+        const { text } = req.body;
+        console.log('+++++++++++++++++++++++++++++++++++++++++++++', req.files)
+
+        let message = req.body.text;
+        let files = req.files;
+        const groupId = req.query.groupId;
+
+        let data;
+        if (files.length === 0) {
+
+            data = await chats.create({
+                Chats: message,
+                userId: req.user.id,
+                userName: req.user.Name,
+                groupId: groupId,
+                fileStatus: false
+            }, { transaction: t });
         }
+        else {
+            const fileUrls = [];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const body = require('fs').createReadStream(file.path);
+                const fileName = `${file.originalname}_${new Date()}`;
+                const ContentType = file.mimetype
+                const Url = await uploadToS3(ContentType, body, fileName);
+                fileUrls.push({ Url: Url, type: ContentType, name: file.originalname });
 
-        const data = await chats.create({
-            Chats: message,
-            userId: req.user.id,
-            userName: req.user.Name,
-            groupId: groupId
-        }, { transaction: t });
 
+                require('fs').unlinkSync(file.path);
+            }
+            data = await chats.create({
+                Chats: message,
+                userId: req.user.id,
+                userName: req.user.Name,
+                groupId: groupId,
+                fileStatus: true,
+                fileUrl: JSON.stringify(fileUrls),
+            }, { transaction: t });
+
+
+        }
         await t.commit();
 
-        res.status(201).json({ chatDetails: data });
+        res.status(201).json({ chatDetails: data, });
 
     } catch (err) {
         await t.rollback()
@@ -57,7 +111,7 @@ exports.addChat = async (req, res, next) => {
 
 exports.showUsers = async (req, res, next) => {
     try {
-        const groupId = Number(req.query.groupId);
+        const groupId = req.query.groupId;
 
 
         const data = await users.findAll({ where: { [Op.not]: [{ id: req.user.id }] }, attributes: ['Name', 'id'] });
@@ -80,7 +134,7 @@ exports.getChats = async (req, res, next) => {
 
         //console.log('*****************************************', req.query.groupId)
 
-        const data = await chats.findAll({ where: { id: { [Op.gt]: chatIndex }, groupId: groupId }, attributes: ['id', 'Chats', 'userName', 'groupId'] });
+        const data = await chats.findAll({ where: { id: { [Op.gt]: chatIndex }, groupId: groupId } });
         res.status(201).json({ chats: data });
     } catch (err) {
         console.log(err)

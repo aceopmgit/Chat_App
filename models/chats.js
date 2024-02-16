@@ -10,12 +10,20 @@ const chat = sequelize.define('chat', {
     },
     Chats: {
         type: Sequelize.TEXT,
-        allowNull: false
     },
     userName: {
         type: Sequelize.STRING,
         allowNull: false
+    },
+    fileStatus: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false
+
+    },
+    fileUrl: {
+        type: Sequelize.TEXT,
     }
+
 })
 
 module.exports = chat;

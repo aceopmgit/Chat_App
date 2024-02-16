@@ -376,10 +376,26 @@
                             <div class="card" style="border:none;background-color: #51dce6;">
                                 <div class="card-body">
                                     <form id='chat'>
+                                        <div id="fileErrors">
+                                            <h5 style="color: red;"></h5>
+
+                                        </div>
                                         <div class="row">
-                                            <div class="col-11">
+                                            <div class="col-1">
+                                                <!-- for handling multiple files at once just add multiple to input here -->
+                                                <label for="fileUpload" class="btn btn-secondary"><svg
+                                                        xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                        fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+                                                        <path
+                                                            d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z" />
+                                                    </svg></label>
+                                                <input type="file" id="fileUpload" name="fileUpload"
+                                                    style="display: none;">
+                                            </div>
+                                            <div class="col-10">
                                                 <input type="text" id="message" name="message" class="form-control"
-                                                    placeholder="message" required autofocus />
+                                                    placeholder="message" autofocus />
+
                                             </div>
                                             <div class="col-1">
                                                 <button class="btn btn-primary float-right" id="send"
