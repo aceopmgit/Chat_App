@@ -28,6 +28,10 @@ router.delete('/deleteGroup', userAuthenticate.authenticate, groupController.del
 
 router.get('/checkGroupStatus', userAuthenticate.authenticate, groupController.checkGroupStatus);
 
+router.get('/getGroupAdmins', userAuthenticate.authenticate, groupController.getGroupAdmins);
+
+
+
 
 
 

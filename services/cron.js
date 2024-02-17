@@ -15,31 +15,33 @@ exports.job = new CronJob(
 
 async function archiveOldRecords() {
     try {
-        const tendDaysAgo = new Date();
-        tendDaysAgo.setDate(tendDaysAgo.getDate() - 10);
+        const oneDayAgo = new Date();
+        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
         //finding record to archieve
-        const recordsToArchive = await chats.findAll({ where: { datedate_time: { [op.lt]: tendDaysAgo } } });
+        const recordsToArchive = await chats.findAll({ where: { datedate_time: { [op.lt]: oneDayAgo } } });
 
-        recordsToArchive.forEach(async (record) => {
-            await ArchivedChats.create({
-                id: record.id,
-                Chats: record.Chats,
-                userName: record.userName,
-                fileStatus: record.fileStatus,
-                fileUrl: record.fileUrl,
-                date_time: record.date_time,
-                userId: record.userId,
-                groupId: record.groupId
-            });
-            await record.destroy();
+        await Promise.all(
+            recordsToArchive.map(async (record) => {
+                await ArchivedChats.create({
+                    id: record.id,
+                    Chats: record.Chats,
+                    userName: record.userName,
+                    fileStatus: record.fileStatus,
+                    fileUrl: record.fileUrl,
+                    date_time: record.date_time,
+                    userId: record.userId,
+                    groupId: record.groupId
+                });
+                await record.destroy();
 
-        })
+            })
+        )
 
         console.log('Old records archived');
 
     }
     catch (err) {
-        console.error('Error archiving old records:', error);
+        console.error('Error archiving old records:', err);
     }
 }

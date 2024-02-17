@@ -32,6 +32,7 @@ const addUserForm = document.getElementById('addUserForm');
 addUserForm.addEventListener('submit', addUsers);
 
 
+
 let groupid;
 
 //code for the token
@@ -102,7 +103,7 @@ async function addChats(e) {
 
             const res = await axios.post(`/chatRoom/addChat?groupId=${groupid}`, formData, { headers: { "Authorization": token, 'Content-Type': 'multipart/form-data' } });
 
-            console.log(res.data)
+            // console.log(res.data)
 
             document.getElementById('message').focus()
             showChats(res.data.chatDetails);
@@ -117,7 +118,7 @@ async function addChats(e) {
             }
             localStorage.setItem('chats', JSON.stringify(oldChats));
 
-            console.log(oldChats)
+            // console.log(oldChats)
 
             socket.emit('send-message', res.data.chatDetails);
         }
@@ -352,7 +353,7 @@ async function showAllChats(e) {
             localStorage.setItem('groupId', groupid);
             document.getElementById('chatSection').style.visibility = 'visible'
 
-            getUsersOfGroup()
+            showGroupInfo();
             permissons();
 
             chatList.innerHTML = "";
@@ -388,39 +389,6 @@ async function showAllChats(e) {
     }
 }
 
-//getting users in a group from backend
-async function getUsersOfGroup() {
-    try {
-        if (localStorage.getItem('groupId') != null) {
-            joinList.innerHTML = "";
-            groupid = localStorage.getItem('groupId');
-            const res1 = await axios.get(`/group/showUsersOfGroup?groupId=${groupid}`, { headers: { "Authorization": token } });
-            //console.log(res1)
-            //console.log(res1.data.users[0].users.length)
-            for (let i = 0; i < res1.data.users[0].users.length; i++) {
-                showUsers(res1.data.users[0].users[i])
-            }
-        }
-    } catch (err) {
-        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
-
-        console.log(err);
-    }
-}
-
-//code for showing all users in a group on the front end;
-function showUsers(obj) {
-    //creating li element
-    const li = document.createElement('li');
-    li.className = 'list-group-item mx-auto';
-    li.style.backgroundColor = '#b9beb9';
-    li.style.width = 'fit-content';
-    li.appendChild(document.createTextNode(`${obj.Name} has joined`));
-
-    const br = document.createElement('br');
-    joinList.append(li, br);
-
-}
 
 window.addEventListener("DOMContentLoaded", async () => {
 
@@ -443,7 +411,6 @@ window.addEventListener("DOMContentLoaded", async () => {
                     localStorage.removeItem('chats');
                 }
                 else {
-                    getUsersOfGroup();
                     const oldChats = JSON.parse(localStorage.getItem('chats'))
 
                     if (oldChats) {
@@ -530,6 +497,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     displayAllUsers();
     getGroupsOnReload();
     permissons();
+    showGroupInfo();
 
 
 });
@@ -946,6 +914,18 @@ function creatingDropdownButton() {
     list.appendChild(li0);
 
     //Add admin button
+    const li6 = document.createElement('li');
+    const btn6 = document.createElement('button');
+    btn6.className = 'dropdown-item';
+    btn6.setAttribute('data-bs-toggle', 'modal');
+    btn6.setAttribute('data-bs-target', '#groupInfoModal');
+    btn6.id = 'groupInfo';
+    btn6.innerHTML = 'Group Info';
+    li6.appendChild(btn6);
+    list.appendChild(li6);
+
+
+    //Add admin button
     const li1 = document.createElement('li');
     const btn1 = document.createElement('button');
     btn1.className = 'dropdown-item';
@@ -1001,6 +981,84 @@ function creatingDropdownButton() {
     list.appendChild(li5);
 }
 
+//for displaying groupinfo
+async function showGroupInfo() {
+    try {
+        if (localStorage.getItem('groupId') != null) {
+            // document.getElementById('groupInfoBody').innerHTML = "";
+            groupid = localStorage.getItem('groupId');
+            const res1 = await axios.get(`/group/showUsersOfGroup?groupId=${groupid}`, { headers: { "Authorization": token } });
+            console.log(res1)
+            console.log(res1.data.users[0].Name);
+            // console.log(document.getElementById('groupInfoGroupName'))
+
+            //Displaying group Name
+            document.getElementById('groupInfoGroupName').innerHTML = `${res1.data.users[0].Name}`;
+
+            //displaying Number of Members in the group
+            document.getElementById('groupInfoMemberCount').innerHTML = `Group :${res1.data.users[0].users.length} members`;
+
+            //for displaying members of group
+            const memberList = document.getElementById('groupInfoMemberList');
+            memberList.innerHTML = '';
+            const a = document.createElement('h4');
+            a.innerHTML = 'Group Members'
+            memberList.append(a);
+
+            for (let i = 0; i < res1.data.users[0].users.length; i++) {
+                // showUsers(res1.data.users[0].users[i])
+                if (parseJwt(token).name === res1.data.users[0].users[i].Name) {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item'
+                    li.appendChild(document.createTextNode(`You`));
+                    memberList.append(li);
+                }
+                else {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item'
+                    li.appendChild(document.createTextNode(`${res1.data.users[0].users[i].Name}`));
+                    memberList.append(li);
+                }
+            }
+
+            //displaying Admins of group
+            const adminList = document.getElementById('groupInfoadminList');
+            adminList.innerHTML = '';
+            const h4 = document.createElement('h4');
+            h4.innerHTML = 'Group Admins'
+            adminList.append(h4);
+
+            const res2 = await axios.get(`/group/getGroupAdmins?groupId=${groupid}`, { headers: { "Authorization": token } });
+            console.log(res2.data.admins);
+
+            for (let i = 0; i < res2.data.admins.length; i++) {
+                if (parseJwt(token).name === res2.data.admins[i]) {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item'
+                    li.appendChild(document.createTextNode(`You`));
+                    adminList.append(li);
+                }
+                else {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item'
+                    li.appendChild(document.createTextNode(`${res2.data.admins[i]}`));
+                    adminList.append(li);
+                }
+
+            }
+
+
+            //console.log(res1.data.users[0].users.length)
+            // for (let i = 0; i < res1.data.users[0].users.length; i++) {
+            //     showUsers(res1.data.users[0].users[i])
+            // }
+        }
+    } catch (err) {
+        document.body.innerHTML = document.body.innerHTML + '<h4 style="color: red;">Could not show Details</h4>';
+
+        console.log(err);
+    }
+}
 
 
 

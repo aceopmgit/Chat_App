@@ -302,3 +302,30 @@ exports.checkGroupStatus = async (req, res, next) => {
         });
     }
 }
+
+exports.getGroupAdmins = async (req, res, next) => {
+    try {
+        const groupId = req.query.groupId;
+
+
+        const data = await admin.findAll({ where: { groupId: groupId }, attributes: ['userId'] });
+
+        const users = []
+        await Promise.all(
+            data.map(async (admin) => {
+                const data = await user.findOne({ where: { id: admin.userId }, attributes: ['Name'] })
+                console.log('****************************', data.Name)
+                users.push(data.Name);
+            })
+        )
+        console.log('+++++++++++++++++++++++++++++++++++++++++++', users)
+
+        res.status(201).json({ admins: users });
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            Error: err,
+        });
+    }
+
+}

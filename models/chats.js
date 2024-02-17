@@ -3,7 +3,7 @@ const sequelize = require('../util/database');
 
 const chat = sequelize.define('chat', {
     id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         autoIncrement: true,
         primaryKey: true,
         allowNull: false
