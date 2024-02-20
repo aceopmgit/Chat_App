@@ -70,9 +70,12 @@ async function addChats(e) {
 
         const files = document.getElementById('fileUpload').files
 
-        if (message.length === 0 && files.length === 0) {
+        if (message.trim() === '' && files.length === 0) {
+            chats.reset()
             return
         }
+
+        console.log(message)
 
         const formData = new FormData();
         if (files.length > 10) {
@@ -527,9 +530,16 @@ socket.on("receive-message", (message) => {
 async function createGroup(event) {
     event.preventDefault(); // Prevent the form from submitting immediately
 
+    document.getElementById('error-message').innerText = '';
     const groupName = document.getElementById('gname').value;
     const checkboxes = document.getElementsByName('users');
     const users = [];
+
+    if (groupName.trim() === '') {
+        document.getElementById('error-message').innerText = 'Please enter a group name';
+        groupForm.reset();
+        return;
+    }
 
     for (let i = 0; i < checkboxes.length; i++) {
         if (checkboxes[i].checked) {
@@ -554,7 +564,6 @@ async function createGroup(event) {
             document.getElementById('groupModalClose').click();
             groupForm.reset();
             showGroups(res.data.details);
-            document.getElementById('error-message').innerText = '';
 
         } catch (error) {
             console.error('Error creating group:', error);

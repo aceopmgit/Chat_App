@@ -1,7 +1,7 @@
 const express = require("express");
 
 const chatController = require("../controllers/chatRoom");
-const userAuthenticate = require('../controllers/Authenticate');
+const userAuthenticate = require('../controllers/authenticate');
 const multer = require('multer');
 
 // Multer middleware for handling file uploads

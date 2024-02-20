@@ -1,10 +1,10 @@
 const path = require("path");
 
 const chats = require('../models/chats')
-const archivedChats = require('../models/Archieved_chats.js')
+const archivedChats = require('../models/archived_chats.js')
 const users = require('../models/user.js')
 const groups = require('../models/group.js')
-const groupUser = require('../models/groupUser.js')
+const groupUser = require('../models/group_user.js')
 const sequelize = require('../util/database.js');
 const { Op } = require("sequelize");
 const { group } = require("console");

@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
 
-const chat = sequelize.define('chat', {
+const Chat = sequelize.define('chat', {
     id: {
         type: Sequelize.BIGINT,
         autoIncrement: true,
@@ -32,4 +32,4 @@ const chat = sequelize.define('chat', {
     timestamps: false
 })
 
-module.exports = chat;
+module.exports = Chat;

@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
 const { v4: uuidv4 } = require('uuid');
 
-const fPassword = sequelize.define('ForgotPasswordRequests', {
+const ForgotPassword = sequelize.define('forgot_password', {
     id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -15,4 +15,4 @@ const fPassword = sequelize.define('ForgotPasswordRequests', {
     isActive: Sequelize.BOOLEAN
 })
 
-module.exports = fPassword;
+module.exports = ForgotPassword;

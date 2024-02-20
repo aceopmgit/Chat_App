@@ -9,10 +9,10 @@ const morgan = require('morgan');
 
 const sequelize = require("./util/database");
 const user = require("./models/user");
-const fPassword = require('./models/forgotPassword');
+const fPassword = require('./models/forgot_password');
 const chats = require('./models/chats');
 const group = require('./models/group');
-const groupUser = require('./models/groupUser');
+const groupUser = require('./models/group_user');
 
 
 const app = express();
@@ -27,6 +27,7 @@ io.on('connection', socket => {
         socket.broadcast.emit('receive-message', message);
     })
 })
+
 
 //handling cron 
 const cronService = require('./services/cron');
@@ -79,7 +80,7 @@ group.belongsToMany(user, { through: groupUser })
 
 sequelize
     .sync()
-    //.sync({ force: true }) //it syncs our models to the database by creating the appropriate tables and relations if we have them
+    // .sync({ force: true }) //it syncs our models to the database by creating the appropriate tables and relations if we have them
     .then((result) => {
         server.listen(PORT, () => { console.log(`*************This is running on Port ${PORT}***********************`) });
     })

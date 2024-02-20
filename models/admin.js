@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
 
-const admin = sequelize.define('admin', {
+const Admin = sequelize.define('admin', {
     id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
@@ -18,4 +18,4 @@ const admin = sequelize.define('admin', {
     }
 })
 
-module.exports = admin;
+module.exports = Admin;

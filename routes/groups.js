@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const groupController = require('../controllers/groups');
-const userAuthenticate = require('../controllers/Authenticate')
+const userAuthenticate = require('../controllers/authenticate')
 
 router.post('/createGroup', userAuthenticate.authenticate, groupController.createGroup);
 

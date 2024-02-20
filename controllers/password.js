@@ -5,7 +5,7 @@ const path = require("path");
 const bcrypt = require('bcrypt');
 
 const User = require('../models/user');
-const fPassword = require('../models/forgotPassword');
+const fPassword = require('../models/forgot_password.js');
 const sequelize = require('../util/database.js');
 const { where } = require('sequelize');
 
