@@ -31,6 +31,12 @@ removeUserForm.addEventListener('submit', removeUser);
 const addUserForm = document.getElementById('addUserForm');
 addUserForm.addEventListener('submit', addUsers);
 
+const deleteGroupButton = document.getElementById('deleteGroupButton');
+deleteGroupButton.addEventListener('click', deleteGroup)
+
+const leaveGroupButton = document.getElementById('leaveGroupButton');
+leaveGroupButton.addEventListener('click', leaveGroup)
+
 
 
 let groupid;
