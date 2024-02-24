@@ -13,6 +13,10 @@ async function submitUser(e) {
     Password: password,
   };
 
+  if (email.trim() === "" || password.trim() === "") {
+    return;
+  }
+
   try {
     const res = await axios.post(
       `/user/loginCheck`,

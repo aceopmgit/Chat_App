@@ -20,6 +20,10 @@ async function submitUser(e) {
       Password: password,
     };
 
+    if (name.trim() === "" || email.trim() === "" || phone.trim() === "" || password.trim() === "") {
+      return;
+    }
+
 
     const res = await axios.post(
       `/user/addUser`,
