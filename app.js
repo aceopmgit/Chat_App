@@ -26,6 +26,17 @@ io.on('connection', socket => {
         // console.log(message);
         socket.broadcast.emit('receive-message', message);
     })
+
+    socket.on('group-created', (data, users) => {
+        socket.broadcast.emit('show-group', data, users);
+        // console.log('+++++++++++++++Hello++++++++++++howareyou+++++++++++++++++++++++++', data, users);
+    })
+
+    socket.on('group-deleted', (groupId) => {
+        // console.log('+++++++++++++++group++++++++++++id-DEleted+++++++++++++++++++++++++', groupId);
+        socket.broadcast.emit('delete-group', groupId);
+
+    })
 })
 
 

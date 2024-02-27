@@ -136,7 +136,7 @@ async function addChats(e) {
 
     } catch (err) {
         document.body.innerHTML =
-            document.body.innerHTML + `<h4 style="color: red;">${err.message}</h4>`;
+            document.body.innerHTML + `<h4 style="color: red;">Some error occured. Please refresh the page</h4>`;
         console.log(err);
     }
 }
@@ -427,7 +427,6 @@ window.addEventListener("DOMContentLoaded", async () => {
                             showChats(oldChats[i]);
                         }
                     }
-
                 }
             }
         } catch (err) {
@@ -509,6 +508,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     showGroupInfo();
 
 
+
 });
 
 //showing chats on realtime
@@ -528,6 +528,38 @@ socket.on("receive-message", (message) => {
     }
 
 })
+
+//showing group to group user in real time
+socket.on("show-group", (data, users) => {
+
+    const userId = parseJwt(token).userId.toString();
+    // console.log('group created', data, users, userId);
+    // console.log(typeof userId)
+
+    if (users.includes(userId)) {
+        showGroups(data);
+
+    }
+    // console.log(users.includes(userId))
+
+})
+
+//deleting group in real time
+socket.on("delete-group", (groupId) => {
+
+    console.log(groupId);
+    if (localStorage.getItem('groupId') === groupId) {
+        localStorage.removeItem('groupId');
+        localStorage.removeItem('chats');
+        alert('This group has been deleted by group owner !');
+        window.location.reload();
+    }
+    else {
+        document.getElementById(groupId).remove();
+    }
+
+})
+
 
 
 
@@ -570,6 +602,9 @@ async function createGroup(event) {
             document.getElementById('groupModalClose').click();
             groupForm.reset();
             showGroups(res.data.details);
+
+            socket.emit('group-created', res.data.details, details.users);
+
 
         } catch (error) {
             console.error('Error creating group:', error);
@@ -860,10 +895,13 @@ async function leaveGroup() {
 //for deleting group****************************************************************
 async function deleteGroup() {
     try {
+        let groupid = localStorage.getItem('groupId');
         const res = await axios.delete(`/group/deleteGroup?groupId=${groupid}`, { headers: { "Authorization": token } });
         localStorage.removeItem('groupId');
         localStorage.removeItem('chats');
+        socket.emit('group-deleted', groupid);
         window.location.reload();
+
 
 
     } catch (err) {
@@ -888,6 +926,8 @@ async function permissons() {
                 document.getElementById('addAdmin').remove();
                 document.getElementById('addMembers').remove();
                 document.getElementById('removeMembers').remove();
+                document.getElementById('deleteGroup').remove();
+
             }
             else {
                 //checking  if the user is creator/owner of group
