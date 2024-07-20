@@ -11,7 +11,7 @@
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
 </head>
 
-<body style="background-color: #6cbff7">
+<body style="background-color: #51dce6">
     <nav class="navbar navbar-expand-lg navbar-primary" style="background-color: #0a399ebe">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
@@ -24,6 +24,7 @@
                     ChatterBox
                 </h1>
             </a>
+
         </div>
     </nav>
 
@@ -33,7 +34,7 @@
                 <br />
                 <br />
 
-                <div class="card" style="background-color: #eef891">
+                <div class="card" style="background-color: #cde2e4">
                     <div class="card-body">
                         <h2 class="card-title">Sign Up</h2>
 
@@ -54,7 +55,7 @@
 
                             <div class="form-floating">
                                 <input type="tel" id="phone" name="phone" class="form-control" placeholder="phone"
-                                    required />
+                                    maxlength="10" required />
                                 <label for="phone" class="form-label">Enter Your Phone Number</label>
                                 <br />
                             </div>
@@ -74,7 +75,7 @@
                             <br />
                             <span>
                                 Already a User ?
-                                <a class="btn btn-outline-info" href="/user/login">LOGIN</a>
+                                <a class="btn btn-outline-success" href="/user/login">LOGIN</a>
                             </span>
                         </form>
                     </div>

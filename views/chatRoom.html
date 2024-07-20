@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"
+        integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+
+    <title>ChatterBox</title>
+</head>
+
+<body style="background-color: #51dce6 ;overflow-x: hidden;">
+
+    <nav class="navbar navbar-expand-lg navbar-primary" style="background-color: #0a399ebe">
+        <div class="container-fluid">
+            <h1>
+                <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor"
+                    class="bi bi-chat-dots-fill" viewBox="0 0 16 16">
+                    <path
+                        d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2" />
+                </svg>
+                ChatterBox
+            </h1>
+            <!-- button for creating groups -->
+            <div class="col text-right">
+                <button class="btn btn-primary" id="createGroup" data-bs-toggle="modal"
+                    data-bs-target="#groupModal">Create New
+                    Group</button>
+                <button class="btn btn-success" id='logout' data-bs-toggle="modal"
+                    data-bs-target="#logoutModal">Logout</button>
+            </div>
+
+            <!-- logout modal -->
+            <div class="modal fade" id="logoutModal">
+
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+
+                        <div class="modal-header" style="background-color: #0a399ebe;">
+
+                        </div>
+
+                        <div class="modal-body" style="background-color: #cde2e4">
+                            <H4>ARE YOU SURE YOU WANT TO LOGOUT ?</H4>
+                        </div>
+
+                        <div class="modal-footer" style="background-color: #cde2e4">
+                            <a class="btn btn-outline-secondary" href="/">YES</a>
+                            <button class="btn btn-outline-secondary" data-bs-dismiss="modal"
+                                data-bs-target="#modal">NO</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-3">
+            <br>
+            <br>
+            <div class="container">
+                <div class="row">
+
+                    <!-- modal for creating groups -->
+                    <div class="modal fade" id="groupModal">
+
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <div class="modal-header" style="background-color: #0a399ebe;">
+                                    Create a New Group
+                                </div>
+
+                                <div class="modal-body" style="background-color: #cde2e4">
+                                    <form id="groupForm">
+                                        <div class="form-floating">
+                                            <input type="text" id="gname" name="gname" class="form-control"
+                                                placeholder="gname" required autofocus />
+                                            <label for="gname" class="form-label">Enter Group Name</label>
+                                            <br />
+                                        </div>
+
+                                        <h4>Add Members</h4>
+
+                                        <br>
+                                        <div id="membersList" class="pre-scrollable">
+
+
+
+                                        </div>
+                                        <div id="error-message" style="color: red;
+                                        font-size: 14px;
+                                        margin-top: 5px;"></div>
+
+
+                                    </form>
+                                    <div class="modal-footer" style="background-color: #cde2e4">
+                                        <button class="btn btn-outline-success" type="submit" form="groupForm">Create
+                                            Group</button>
+
+                                        <button class="btn btn-outline-danger" data-bs-dismiss="modal"
+                                            data-bs-target="#modal" id="groupModalClose">Cancel</button>
+                                    </div>
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- modal for adding admin of group -->
+                    <div class="modal fade" id="addAdminModal">
+
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <div class="modal-header" style="background-color: #0a399ebe;">
+                                    Add new Admin </div>
+
+                                <div class="modal-body" style="background-color: #cde2e4">
+                                    <form id="addAdminForm">
+
+                                        <div id="addAdminList" class="pre-scrollable">
+
+
+
+                                        </div>
+                                        <div id="error-message1" style="color: red;
+                                        font-size: 14px;
+                                        margin-top: 5px;"></div>
+
+
+                                    </form>
+                                    <div class="modal-footer" style="background-color: #cde2e4">
+                                        <button class="btn btn-outline-success" type="submit" id="addAdminButton"
+                                            form="addAdminForm">Add</button>
+
+                                        <button class="btn btn-outline-danger" data-bs-dismiss="modal"
+                                            data-bs-target="#modal" id="addAdminModalClose">Cancel</button>
+                                    </div>
+
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- modal for removing users of group -->
+                    <div class="modal fade" id="removeUserModal">
+
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <div class="modal-header" style="background-color: #0a399ebe;">
+                                    Remove Users from group</div>
+
+                                <div class="modal-body" style="background-color: #cde2e4">
+                                    <form id="removeUserForm">
+
+                                        <div id="removeUserList" class="pre-scrollable">
+
+
+
+                                        </div>
+                                        <div id="error-message2" style="color: red;
+                                                            font-size: 14px;
+                                                            margin-top: 5px;"></div>
+
+
+                                    </form>
+                                    <div class="modal-footer" style="background-color: #cde2e4">
+                                        <button class="btn btn-outline-success" type="submit" id="removeUserButton"
+                                            form="removeUserForm">Remove</button>
+
+                                        <button class="btn btn-outline-danger" data-bs-dismiss="modal"
+                                            data-bs-target="#modal" id="removeUserModalClose">Cancel</button>
+                                    </div>
+
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- modal for adding users to an existing group -->
+                    <div class="modal fade" id="addUserModal">
+
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <div class="modal-header" style="background-color: #0a399ebe;">
+                                    Add Users to group</div>
+
+                                <div class="modal-body" style="background-color: #cde2e4">
+                                    <form id="addUserForm">
+
+                                        <div id="addUserList" class="pre-scrollable">
+
+
+
+                                        </div>
+                                        <div id="error-message3" style="color: red;
+                                                            font-size: 14px;
+                                                            margin-top: 5px;"></div>
+
+
+                                    </form>
+                                    <div class="modal-footer" style="background-color: #cde2e4">
+                                        <button class="btn btn-outline-success" type="submit" id="addUserButton"
+                                            form="addUserForm">Add</button>
+
+                                        <button class="btn btn-outline-danger" data-bs-dismiss="modal"
+                                            data-bs-target="#modal" id="addUserModalClose">Cancel</button>
+                                    </div>
+
+
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- modal for leaving group -->
+                    <div class="modal fade" id="exitGroupModal">
+
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <div class="modal-header" style="background-color: #0a399ebe;">
+                                </div>
+
+                                <div class="modal-body" style="background-color: #cde2e4">
+                                    <H4>Are you sure you want to leave this group? </H4>
+                                </div>
+
+                                <div class="modal-footer" style="background-color: #cde2e4">
+                                    <button class="btn btn-outline-secondary" id="leaveGroupButton">YES</button>
+                                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal"
+                                        data-bs-target="#modal">NO</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- modal for deleting group -->
+                    <div class="modal fade" id="deleteGroupModal">
+
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <div class="modal-header" style="background-color: #0a399ebe;">
+
+                                </div>
+
+                                <div class="modal-body" style="background-color: #cde2e4">
+                                    <H4>Are you sure you want to delete this group? </H4>
+                                </div>
+
+                                <div class="modal-footer" style="background-color: #cde2e4">
+                                    <button class="btn btn-outline-secondary" id="deleteGroupButton">YES</button>
+                                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal"
+                                        data-bs-target="#modal">NO</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- modal for group info-->
+                    <div class="modal fade" id="groupInfoModal">
+
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+
+                                <div class="modal-body" style="background-color: #cde2e4" id="groupInfoBody">
+                                    <h2 style="text-align: center;" id="groupInfoGroupName"></h2>
+
+                                    <p style="text-align: center;" id="groupInfoMemberCount"> group 60 Members</p>
+                                    <br>
+
+                                    <ul id="groupInfoadminList" class="list-group" style="list-style: none;"></ul>
+                                    <br>
+                                    <ul id="groupInfoMemberList" class="list-group" style="list-style: none;"></ul>
+
+
+                                </div>
+
+                                <div class="modal-footer" style="background-color: #cde2e4">
+                                    <button class="btn btn-outline-danger" data-bs-dismiss="modal"
+                                        data-bs-target="#modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+                <div class="row">
+                    <div class="list-group" id="groupList" role="tablist">
+                        <!-- list containg group names -->
+
+
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+        <div class="col-md-9" style="visibility: hidden;" id="chatSection">
+            <div class="container-fluid">
+                <br>
+                <div class="row">
+                    <div class="col text-right">
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+
+                            </button>
+                            <ul class="dropdown-menu" id="dropdownMenu">
+                                <!-- <li><button class="dropdown-item" id="allChats">See all Chats</button></li> -->
+
+                                <!-- <li><button class="dropdown-item" id="addAdmin" data-bs-toggle="modal"
+                                        data-bs-target="#addAdminModal">Add new admin</button></li> -->
+
+                                <!-- <li><button class="dropdown-item" id="addMembers" data-bs-toggle="modal"
+                                        data-bs-target="#addUserModal">Add members to the group</button></li>
+
+                                <li><button class="dropdown-item" id="removeMembers" data-bs-toggle="modal"
+                                        data-bs-target="#removeUserModal">Remove members of the group</button></li> -->
+
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+                <br>
+                <!-- list containg name of group members  -->
+                <ul id="joinList" class="list-group" style="list-style: none;">
+                </ul>
+                <br>
+                <!-- list containing chats of group -->
+                <ul id="chatList" class="list-group" style="list-style: none;">
+
+                </ul>
+
+
+            </div>
+
+            <div style="visibility: hidden;">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Eius, non deserunt quas eaque iusto obcaecati,
+                vero
+                magnam explicabo commodi ex nemo ducimus cum corrupti necessitatibus illum perspiciatis, blanditiis
+                fugiat?
+                Non.
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Officia soluta consectetur eius impedit,
+                ratione
+                natus
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit velit vero quos similique eos quis optio
+                aspernatur
+                eius. A repudiandae quam laborum voluptatem ullam laboriosam ipsam perspiciatis in deleniti impedit!
+            </div>
+
+            <div style="position:fixed;bottom:0 ;width:100%;background-color: #51dce6; ">
+                <div class="container">
+                    <div class="row">
+                        <!-- button for scrolling down -->
+                        <div class="col-md-9 text-right">
+                            <button class="btn btn-light" id="scrollDown"><svg xmlns="http://www.w3.org/2000/svg"
+                                    width="16" height="16" fill="currentColor" class="bi bi-chevron-double-down"
+                                    viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd"
+                                        d="M1.646 6.646a.5.5 0 0 1 .708 0L8 12.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708" />
+                                    <path fill-rule="evenodd"
+                                        d="M1.646 2.646a.5.5 0 0 1 .708 0L8 8.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708" />
+                                </svg></button>
+                        </div>
+
+                    </div>
+                    <!-- chat sending form -->
+                    <div class="row">
+                        <div class="col-sm-12 col-md-8 ">
+
+                            <div class="card" style="border:none;background-color: #51dce6;">
+                                <div class="card-body">
+                                    <form id='chat'>
+                                        <div id="fileErrors">
+                                            <h5 style="color: red;"></h5>
+
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-1">
+                                                <!-- for handling multiple files at once just add multiple to input here -->
+                                                <label for="fileUpload" class="btn btn-secondary"><svg
+                                                        xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                        fill="currentColor" class="bi bi-paperclip" viewBox="0 0 16 16">
+                                                        <path
+                                                            d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z" />
+                                                    </svg></label>
+                                                <input type="file" id="fileUpload" name="fileUpload"
+                                                    style="display: none;">
+                                            </div>
+                                            <div class="col-10">
+                                                <input type="text" id="message" name="message" class="form-control"
+                                                    placeholder="message" autofocus />
+
+                                            </div>
+                                            <div class="col-1">
+                                                <button class="btn btn-primary float-right" id="send"
+                                                    type="submit">></button>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module" src="/js/chatRoom.js"></script>
+</body>
+
+</html>
